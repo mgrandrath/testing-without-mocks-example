@@ -10,6 +10,7 @@
     "test:watch": "vitest watch",
     "qa": "yarn run check-code-style && yarn run lint && yarn run test",
     "build": "tsc",
+    "build:qa": "yarn run qa && yarn run build",
     "clean": "rm -rf dist"
   },
   "author": "Martin Grandrath <martin.grandrath@codecentric.de>",
