@@ -1,0 +1,11 @@
+{
+  "name": "testing-without-mocks-example",
+  "version": "1.0.0",
+  "description": "A sample application that demonstrate the basic principles behind James Shore's 'Testing without Mocks' pattern",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Martin Grandrath <martin.grandrath@codecentric.de>",
+  "license": "ISC"
+}
