@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "check-code-style": "prettier --check .",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "qa": "yarn run check-code-style && yarn run test",
     "build": "tsc",
     "clean": "rm -rf dist"
   },
@@ -14,6 +16,7 @@
   "dependencies": {},
   "devDependencies": {
     "prettier": "^2.8.8",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vitest": "^0.30.1"
   }
 }
