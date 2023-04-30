@@ -4,7 +4,10 @@
   "description": "A sample application that demonstrate the basic principles behind James Shore's 'Testing without Mocks' pattern",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check-code-style": "prettier --check .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "clean": "rm -rf dist"
   },
   "author": "Martin Grandrath <martin.grandrath@codecentric.de>",
   "license": "ISC",
