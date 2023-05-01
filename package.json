@@ -15,7 +15,9 @@
   },
   "author": "Martin Grandrath <martin.grandrath@codecentric.de>",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "node-json-db": "^2.2.0"
+  },
   "devDependencies": {
     "@types/tmp": "^0.2.3",
     "@typescript-eslint/eslint-plugin": "^5.59.1",

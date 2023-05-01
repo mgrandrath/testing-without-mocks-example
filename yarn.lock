@@ -1026,6 +1026,13 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
+node-json-db@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/node-json-db/-/node-json-db-2.2.0.tgz#b41b20fde20777a67af2fa4af6c4163de39a0284"
+  integrity sha512-GBuXPjItZ+XivMxR7bhSjVeXKiHZKRN/HbvqrwVemV6V5atcnIIZbg2J2vJHE6RYHydtPCJoUy05YaK4wQO0TA==
+  dependencies:
+    rwlock "^5.0.0"
+
 once@^1.3.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/once/-/once-1.4.0.tgz#583b1aa775961d4b113ac17d9c50baef9dd76bd1"
@@ -1195,6 +1202,11 @@ run-parallel@^1.1.9:
   integrity sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==
   dependencies:
     queue-microtask "^1.2.2"
+
+rwlock@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/rwlock/-/rwlock-5.0.0.tgz#888d6a77a3351cc1a209204ef2ee1722093836cf"
+  integrity sha512-XgzRqLMfCcm9QfZuPav9cV3Xin5TRcIlp4X/SH3CvB+x5D2AakdlEepfJKDd8ByncvfpcxNWdRZVUl38PS6ZJg==
 
 semver@^7.3.2, semver@^7.3.7:
   version "7.5.0"
