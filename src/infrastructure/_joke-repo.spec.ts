@@ -3,8 +3,8 @@ import { isNone, some } from "fp-ts/lib/Option";
 import { Joke, createJokeId } from "../domain/joke";
 import { FsDbClient } from "./fs_db_client";
 import { JokeRepo } from "./joke-repo";
-import { createJoke } from "../factories";
-import { recordEvents } from "../spec-helpers";
+import { createJoke } from "../spec-helpers/factories";
+import { recordEvents } from "../spec-helpers/record-events";
 
 describe("JokeRepo", () => {
   describe("findByJokeId", () => {

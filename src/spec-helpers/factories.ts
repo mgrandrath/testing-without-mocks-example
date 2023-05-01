@@ -1,4 +1,4 @@
-import { Joke, createJokeId } from "./domain/joke";
+import { Joke, createJokeId } from "../domain/joke";
 
 export const createJoke = (overrides: Partial<Joke>): Joke => ({
   jokeId: createJokeId("factory-joke-111"),

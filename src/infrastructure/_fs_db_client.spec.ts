@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import tmp from "tmp";
 import { isNone, some } from "fp-ts/lib/Option";
 import { FsDbClient } from "./fs_db_client";
-import { recordEvents } from "../spec-helpers";
+import { recordEvents } from "../spec-helpers/record-events";
 
 type TmpFile = {
   path: string;
