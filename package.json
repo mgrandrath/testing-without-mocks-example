@@ -6,9 +6,10 @@
   "scripts": {
     "check-code-style": "prettier --check .",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "qa": "yarn run check-code-style && yarn run lint && yarn run test",
+    "qa": "yarn run check-code-style && yarn run lint && yarn run typecheck && yarn run test",
     "build": "tsc",
     "build:qa": "yarn run qa && yarn run build",
     "clean": "rm -rf dist"
