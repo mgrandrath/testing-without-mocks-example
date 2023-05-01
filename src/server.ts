@@ -53,8 +53,11 @@ export const createServer = (infrastructure: Infrastructure): Server => {
 
   return {
     start: (port: number) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         httpServer = app.listen(port, resolve);
+        httpServer.once("error", (error) => {
+          reject(error);
+        });
       });
     },
 
