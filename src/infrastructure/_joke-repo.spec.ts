@@ -5,8 +5,26 @@ import { FsDbClient } from "./fs_db_client";
 import { JokeRepo } from "./joke-repo";
 import { createJoke } from "../spec-helpers/factories";
 import { recordEvents } from "../spec-helpers/record-events";
+import { createTmpDbFile } from "../spec-helpers/tmp-file";
 
 describe("JokeRepo", () => {
+  describe("integration", () => {
+    it("should write to the filesystem", async () => {
+      const tmpFile = await createTmpDbFile();
+      try {
+        const jokeRepo = JokeRepo.create({ dbFile: tmpFile.path });
+
+        const joke = createJoke();
+        await jokeRepo.add(joke);
+        const retrievedJoke = await jokeRepo.findByJokeId(joke.jokeId);
+
+        expect(retrievedJoke).toEqual(some(joke));
+      } finally {
+        tmpFile.cleanup();
+      }
+    });
+  });
+
   describe("findByJokeId", () => {
     it("should find jokes by id", async () => {
       const jokeId = createJokeId("joke-111");

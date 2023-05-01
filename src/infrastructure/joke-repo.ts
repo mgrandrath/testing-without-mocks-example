@@ -2,12 +2,22 @@ import EventEmitter from "node:events";
 import { Option } from "fp-ts/lib/Option";
 import { Joke, JokeId } from "../domain/joke";
 import { FsDbClient } from "./fs_db_client";
+import { IJokeRepo } from "../request-handlers/types";
+
+type JokeRepoOptions = {
+  dbFile: string;
+};
 
 type NullJokeRepoOptions = {
   jokes: Record<string, Joke>;
 };
 
-export class JokeRepo extends EventEmitter {
+export class JokeRepo extends EventEmitter implements IJokeRepo {
+  static create(options: JokeRepoOptions) {
+    const fsDbClient = FsDbClient.create<Joke>({ dbFile: options.dbFile });
+    return new JokeRepo(fsDbClient);
+  }
+
   static createNull(options?: NullJokeRepoOptions) {
     const fsDbClient = FsDbClient.createNull<Joke>({
       items: options?.jokes,
@@ -26,7 +36,7 @@ export class JokeRepo extends EventEmitter {
     this.#fsDbClient = fsDbClient;
   }
 
-  async findAll() {
+  async findAll(): Promise<Joke[]> {
     return await this.#fsDbClient.listItems();
   }
 
@@ -34,12 +44,12 @@ export class JokeRepo extends EventEmitter {
     return await this.#fsDbClient.getItem(jokeId);
   }
 
-  async add(joke: Joke) {
+  async add(joke: Joke): Promise<void> {
     await this.#fsDbClient.putItem(joke.jokeId, joke);
     this.emit(JokeRepo.JOKE_ADDED, { joke });
   }
 
-  async remove(jokeId: JokeId) {
+  async remove(jokeId: JokeId): Promise<void> {
     await this.#fsDbClient.deleteItem(jokeId);
     this.emit(JokeRepo.JOKE_REMOVED, { jokeId });
   }

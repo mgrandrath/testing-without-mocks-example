@@ -1,17 +1,14 @@
+import { Infrastructure } from "../request-handlers/types";
 import { JokeRepo } from "./joke-repo";
 import { Uuid } from "./uuid";
 
-export type Infrastructure = {
-  uuid: Uuid;
-  jokeRepo: JokeRepo;
+export type InfrastructureOptions = {
+  dbFile: string;
 };
 
-export const createNullInfrastructure: (
-  overrides?: Partial<Infrastructure>
-) => Infrastructure = (overrides) => {
+export const create = (options: InfrastructureOptions): Infrastructure => {
   return {
-    uuid: Uuid.createNull(),
-    jokeRepo: JokeRepo.createNull(),
-    ...overrides,
+    uuid: Uuid.create(),
+    jokeRepo: JokeRepo.create({ dbFile: options.dbFile }),
   };
 };

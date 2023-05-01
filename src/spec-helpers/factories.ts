@@ -1,7 +1,17 @@
 import { v4 as uuid } from "uuid";
 import { Joke, createJokeId } from "../domain/joke";
-import { Request } from "../request-handlers/request";
+import { Infrastructure, Request } from "../request-handlers/types";
 import { JokeInput } from "../request-handlers/jokes";
+import { Uuid } from "../infrastructure/uuid";
+import { JokeRepo } from "../infrastructure/joke-repo";
+
+export const createNullInfrastructure = (
+  overrides?: Partial<Infrastructure>
+): Infrastructure => ({
+  uuid: Uuid.createNull(),
+  jokeRepo: JokeRepo.createNull(),
+  ...overrides,
+});
 
 export const createRequest = (overrides?: Partial<Request>): Request => ({
   params: {},

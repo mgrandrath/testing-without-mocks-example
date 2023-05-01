@@ -1,13 +1,5 @@
 import { match as matchOption } from "fp-ts/lib/Option";
-import { RequestHandler } from "./request";
-import {
-  Response,
-  badRequest,
-  created,
-  noContent,
-  notFound,
-  ok,
-} from "./responses";
+import { match as matchEither } from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import {
   Joke,
@@ -15,7 +7,8 @@ import {
   createJokeId,
   validateJoke,
 } from "../domain/joke";
-import { match as matchEither } from "fp-ts/lib/Either";
+import { RequestHandler, Response } from "./types";
+import { badRequest, created, noContent, notFound, ok } from "./responses";
 
 export type JokeInput = Omit<Joke, "jokeId">;
 

@@ -1,8 +1,9 @@
 import { v4 as realUuidV4 } from "uuid";
+import { IUuid } from "../request-handlers/types";
 
 type NullUuidOptions = string | string[] | undefined;
 
-export class Uuid {
+export class Uuid implements IUuid {
   static create() {
     return new Uuid(realUuidV4);
   }
@@ -17,7 +18,7 @@ export class Uuid {
     this.#uuidV4 = uuidV4;
   }
 
-  uuidV4() {
+  uuidV4(): string {
     return this.#uuidV4();
   }
 }

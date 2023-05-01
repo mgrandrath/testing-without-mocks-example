@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   createJoke,
   createJokeInput,
+  createNullInfrastructure,
   createRequest,
 } from "../spec-helpers/factories";
-import { createNullInfrastructure } from "../infrastructure/create";
 import { JokeRepo } from "../infrastructure/joke-repo";
 import { badRequest, created, noContent, notFound, ok } from "./responses";
 import * as Jokes from "./jokes";

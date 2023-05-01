@@ -1,29 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import tmp from "tmp";
 import { isNone, some } from "fp-ts/lib/Option";
 import { FsDbClient } from "./fs_db_client";
 import { recordEvents } from "../spec-helpers/record-events";
-
-type TmpFile = {
-  path: string;
-  cleanup: () => void;
-};
-
-const createTmpDbFile = () => {
-  return new Promise<TmpFile>((resolve, reject) => {
-    tmp.file(
-      { prefix: "test", postfix: ".db" },
-      (error, path, _fd, cleanup) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve({ path, cleanup });
-      }
-    );
-  });
-};
+import { TmpFile, createTmpDbFile } from "../spec-helpers/tmp-file";
 
 describe("FsDbClient", () => {
   describe("real instance", () => {
