@@ -9,8 +9,9 @@ import { recordEvents } from "../spec-helpers/record-events";
 describe("JokeRepo", () => {
   describe("findByJokeId", () => {
     it("should find jokes by id", async () => {
+      const jokeId = createJokeId("joke-111");
       const joke = createJoke({
-        jokeId: createJokeId("joke-111"),
+        jokeId,
         question: "Was ist weiß und stört beim Frühstück?",
         answer: "Eine Lawine",
       });
@@ -21,7 +22,7 @@ describe("JokeRepo", () => {
       });
       const jokeRepo = new JokeRepo(fsDbClient);
 
-      const retrievedJoke = await jokeRepo.findByJokeId("joke-111");
+      const retrievedJoke = await jokeRepo.findByJokeId(jokeId);
 
       expect(retrievedJoke).toEqual(some(joke));
     });
@@ -129,6 +130,30 @@ describe("JokeRepo", () => {
 
       expect(itemStoredEvents).toEqual([{ id: joke.jokeId, item: joke }]);
     });
+
+    describe("null instance", () => {
+      it("should emit a JOKE_ADDED event after adding a new joke", async () => {
+        const fsDbClient = FsDbClient.createNull<Joke>();
+        const jokeRepo = new JokeRepo(fsDbClient);
+        const jokeAddedEvents = recordEvents(jokeRepo, JokeRepo.JOKE_ADDED);
+
+        const joke = createJoke({
+          jokeId: createJokeId("joke-111"),
+          question: "Was ist weiß und steht hinterm Baum?",
+          answer: "Eine schüchterne Milch",
+        });
+
+        await jokeRepo.add(joke);
+
+        expect(jokeAddedEvents).toEqual([
+          {
+            jokeId: "joke-111",
+            question: "Was ist weiß und steht hinterm Baum?",
+            answer: "Eine schüchterne Milch",
+          },
+        ]);
+      });
+    });
   });
 
   describe("remove", () => {
@@ -143,6 +168,22 @@ describe("JokeRepo", () => {
       await jokeRepo.remove(createJokeId("joke-111"));
 
       expect(itemDeletedEvents).toEqual([{ id: "joke-111" }]);
+    });
+
+    describe("null instance", () => {
+      it("should emit a JOKE_REMOVED event after removing a joke", async () => {
+        const fsDbClient = FsDbClient.createNull<Joke>();
+        const jokeRepo = new JokeRepo(fsDbClient);
+        const jokeRemovedEvents = recordEvents(jokeRepo, JokeRepo.JOKE_REMOVED);
+
+        await jokeRepo.remove(createJokeId("joke-111"));
+
+        expect(jokeRemovedEvents).toEqual([
+          {
+            jokeId: "joke-111",
+          },
+        ]);
+      });
     });
   });
 });
