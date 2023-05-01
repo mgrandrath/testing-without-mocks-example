@@ -16,6 +16,7 @@
   "author": "Martin Grandrath <martin.grandrath@codecentric.de>",
   "license": "ISC",
   "dependencies": {
+    "fp-ts": "^2.14.0",
     "node-json-db": "^2.2.0"
   },
   "devDependencies": {

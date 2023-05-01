@@ -5,6 +5,7 @@ import {
   DatabaseError,
   DataError,
 } from "node-json-db";
+import { Option, none, some } from "fp-ts/lib/Option";
 
 type FsDbClientOptions = { dbFile: string; idProp: string };
 type Item = Record<string, unknown>;
@@ -41,11 +42,11 @@ export class FsDbClient<T extends Item> {
     return Object.values<T>(itemsById);
   }
 
-  async getItem(id: string): Promise<T | null> {
+  async getItem(id: string): Promise<Option<T>> {
     this.#assertValidId(id);
 
     try {
-      return await this.#jsonDb.getData(this.#itemPath(id));
+      return some(await this.#jsonDb.getData(this.#itemPath(id)));
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();
@@ -53,7 +54,7 @@ export class FsDbClient<T extends Item> {
       }
 
       if (this.#isItemMissing(error)) {
-        return null;
+        return none;
       }
 
       throw error;

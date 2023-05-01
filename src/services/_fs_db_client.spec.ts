@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import tmp from "tmp";
+import { isNone, some } from "fp-ts/lib/Option";
 import { FsDbClient } from "./fs_db_client";
 
 type TmpFile = {
@@ -34,7 +35,7 @@ describe("FsDbClient", () => {
     tmpFile.cleanup();
   });
 
-  it("should return `null` when a given id does not exist", async () => {
+  it("should return `None` when a given id does not exist", async () => {
     type Item = { myId: string };
     const fsDbClient = FsDbClient.create<Item>({
       dbFile: tmpFile.path,
@@ -43,7 +44,7 @@ describe("FsDbClient", () => {
 
     const retrievedItem = await fsDbClient.getItem("id-that-does-not-exist");
 
-    expect(retrievedItem).toEqual(null);
+    expect(isNone(retrievedItem)).toEqual(true);
   });
 
   it("should read and write a single item", async () => {
@@ -61,11 +62,13 @@ describe("FsDbClient", () => {
 
     const retrievedItem = await fsDbClient.getItem("item-111");
 
-    expect(retrievedItem).toEqual({
-      myId: "item-111",
-      someString: "this is a string",
-      numberProp: 123,
-    });
+    expect(retrievedItem).toEqual(
+      some({
+        myId: "item-111",
+        someString: "this is a string",
+        numberProp: 123,
+      })
+    );
   });
 
   it("should replace an existing item", async () => {
@@ -86,10 +89,12 @@ describe("FsDbClient", () => {
 
     const retrievedItem = await fsDbClient.getItem("item-111");
 
-    expect(retrievedItem).toEqual({
-      myId: "item-111",
-      data: "this is my data",
-    });
+    expect(retrievedItem).toEqual(
+      some({
+        myId: "item-111",
+        data: "this is my data",
+      })
+    );
   });
 
   it("should throw when item id contains reserved character '/'", async () => {
