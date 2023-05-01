@@ -46,7 +46,7 @@ export class JokeRepo extends EventEmitter implements IJokeRepo {
 
   async add(joke: Joke): Promise<void> {
     await this.#fsDbClient.putItem(joke.jokeId, joke);
-    this.emit(JokeRepo.JOKE_ADDED, { joke });
+    this.emit(JokeRepo.JOKE_ADDED, joke);
   }
 
   async remove(jokeId: JokeId): Promise<void> {

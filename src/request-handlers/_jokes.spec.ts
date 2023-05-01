@@ -81,7 +81,7 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.create(infrastructure, request);
 
-      expect(jokeAddedEvents).toEqual([{ joke: expectedJoke }]);
+      expect(jokeAddedEvents).toEqual([expectedJoke]);
       expect(response).toEqual(created({ joke: expectedJoke }));
     });
 
@@ -119,7 +119,7 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.update(infrastructure, request);
 
-      expect(jokeAddedEvents).toEqual([{ joke: expectedJoke }]);
+      expect(jokeAddedEvents).toEqual([expectedJoke]);
       expect(response).toEqual(noContent());
     });
 

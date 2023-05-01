@@ -165,11 +165,9 @@ describe("JokeRepo", () => {
 
         expect(jokeAddedEvents).toEqual([
           {
-            joke: {
-              jokeId: "joke-111",
-              question: "Was ist weiß und steht hinterm Baum?",
-              answer: "Eine schüchterne Milch",
-            },
+            jokeId: "joke-111",
+            question: "Was ist weiß und steht hinterm Baum?",
+            answer: "Eine schüchterne Milch",
           },
         ]);
       });

@@ -6,7 +6,9 @@ export type InfrastructureOptions = {
   dbFile: string;
 };
 
-export const create = (options: InfrastructureOptions): Infrastructure => {
+export const createInfrastructure = (
+  options: InfrastructureOptions
+): Infrastructure => {
   return {
     uuid: Uuid.create(),
     jokeRepo: JokeRepo.create({ dbFile: options.dbFile }),
