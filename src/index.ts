@@ -14,7 +14,9 @@ const server = createServer(infrastructure);
 server
   .start(Number(port))
   .then(() => {
-    console.log("Server started");
+    console.log(
+      `Server started and is listening for connections at http://localhost:${port}`
+    );
   })
   .catch((error: unknown) => {
     console.error("Server failed to start", error);
