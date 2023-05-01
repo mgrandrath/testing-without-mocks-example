@@ -2,7 +2,18 @@ import { Option } from "fp-ts/lib/Option";
 import { Joke, JokeId } from "../domain/joke";
 import { FsDbClient } from "./fs_db_client";
 
+type NullJokeRepoOptions = {
+  jokes: Record<string, Joke>;
+};
+
 export class JokeRepo {
+  static createNull(options?: NullJokeRepoOptions) {
+    const fsDbClient = FsDbClient.createNull<Joke>({
+      items: options?.jokes,
+    });
+    return new JokeRepo(fsDbClient);
+  }
+
   #fsDbClient: FsDbClient<Joke>;
 
   constructor(fsDbClient: FsDbClient<Joke>) {

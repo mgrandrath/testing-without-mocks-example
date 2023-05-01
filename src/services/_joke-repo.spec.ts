@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { some } from "fp-ts/lib/Option";
+import { isNone, some } from "fp-ts/lib/Option";
 import { Joke, createJokeId } from "../domain/joke";
 import { FsDbClient } from "./fs_db_client";
 import { JokeRepo } from "./joke-repo";
@@ -24,6 +24,35 @@ describe("JokeRepo", () => {
       const retrievedJoke = await jokeRepo.findByJokeId("joke-111");
 
       expect(retrievedJoke).toEqual(some(joke));
+    });
+
+    describe("null instance", () => {
+      it("should return nothing by default", async () => {
+        const jokeRepo = JokeRepo.createNull();
+
+        const joke = await jokeRepo.findByJokeId(createJokeId("irrelevant"));
+
+        expect(isNone(joke)).toEqual(true);
+      });
+
+      it("should return configurable jokes", async () => {
+        const joke1 = createJoke({
+          jokeId: createJokeId("joke-111"),
+        });
+        const joke2 = createJoke({
+          jokeId: createJokeId("joke-222"),
+        });
+
+        const jokeRepo = JokeRepo.createNull({
+          jokes: {
+            [joke1.jokeId]: joke1,
+            [joke2.jokeId]: joke2,
+          },
+        });
+
+        expect(await jokeRepo.findByJokeId(joke1.jokeId)).toEqual(some(joke1));
+        expect(await jokeRepo.findByJokeId(joke2.jokeId)).toEqual(some(joke2));
+      });
     });
   });
 
@@ -51,6 +80,36 @@ describe("JokeRepo", () => {
       const jokes = await jokeRepo.findAll();
 
       expect(jokes).toEqual([joke1, joke2]);
+    });
+
+    describe("null instance", () => {
+      it("should return nothing by default", async () => {
+        const jokeRepo = JokeRepo.createNull();
+
+        const jokes = await jokeRepo.findAll();
+
+        expect(jokes).toEqual([]);
+      });
+
+      it("should return configurable jokes", async () => {
+        const joke1 = createJoke({
+          jokeId: createJokeId("joke-111"),
+        });
+        const joke2 = createJoke({
+          jokeId: createJokeId("joke-222"),
+        });
+
+        const jokeRepo = JokeRepo.createNull({
+          jokes: {
+            [joke1.jokeId]: joke1,
+            [joke2.jokeId]: joke2,
+          },
+        });
+
+        const jokes = await jokeRepo.findAll();
+
+        expect(jokes).toEqual([joke1, joke2]);
+      });
     });
   });
 
