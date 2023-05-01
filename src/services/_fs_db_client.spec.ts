@@ -239,14 +239,14 @@ describe("FsDbClient", () => {
     it("should emit an event when an item has been deleted", async () => {
       type Item = { data: string };
       const fsDbClient = FsDbClient.createNull<Item>();
-      const itemStoredEvents = recordEvents(
+      const itemDeletedEvents = recordEvents(
         fsDbClient,
         FsDbClient.ITEM_DELETED
       );
 
       await fsDbClient.deleteItem("item-111");
 
-      expect(itemStoredEvents).toEqual([{ id: "item-111" }]);
+      expect(itemDeletedEvents).toEqual([{ id: "item-111" }]);
     });
   });
 });
