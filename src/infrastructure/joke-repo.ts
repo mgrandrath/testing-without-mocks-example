@@ -36,7 +36,7 @@ export class JokeRepo extends EventEmitter {
 
   async add(joke: Joke) {
     await this.#fsDbClient.putItem(joke.jokeId, joke);
-    this.emit(JokeRepo.JOKE_ADDED, joke);
+    this.emit(JokeRepo.JOKE_ADDED, { joke });
   }
 
   async remove(jokeId: JokeId) {
