@@ -1,3 +1,4 @@
+import EventEmitter from "node:events";
 import { writeFile } from "node:fs/promises";
 import {
   Config as JsonDbConfig,
@@ -7,15 +8,17 @@ import {
 } from "node-json-db";
 import { Option, none, some } from "fp-ts/lib/Option";
 
-type FsDbClientOptions = { dbFile: string; idProp: string };
+type FsDbClientOptions = { dbFile: string };
+type NullFsDbClientOptions<T> = { items?: Record<string, T> };
 type Item = Record<string, unknown>;
 type Id = string & { __brand: "Id" };
+type JsonDbInterface = Pick<JsonDB, "getData" | "push" | "delete">;
 
 // Error ids used as magic numbers inside node-json-db
 const JSON_PARSE_ERROR = 1;
 const DATA_PATH_NOT_FOUND = 5;
 
-export class FsDbClient<T extends Item> {
+export class FsDbClient<T extends Item> extends EventEmitter {
   static create<T extends Item>(options: FsDbClientOptions) {
     const jsonDbConfig = new JsonDbConfig(
       options.dbFile,
@@ -27,12 +30,21 @@ export class FsDbClient<T extends Item> {
     return new FsDbClient<T>(jsonDb, options);
   }
 
-  #idProp: string;
-  #dbFile: string;
-  #jsonDb: JsonDB;
+  static createNull<T extends Item>(options?: NullFsDbClientOptions<T>) {
+    return new FsDbClient<T>(createJsonDbStub(options), {
+      dbFile: "null-file.json",
+    });
+  }
 
-  constructor(jsonDb: JsonDB, options: FsDbClientOptions) {
-    this.#idProp = options.idProp;
+  static ITEM_STORED = "FsDbClient:item-stored";
+  static ITEM_DELETED = "FsDbClient:item-deleted";
+
+  #dbFile: string;
+  #jsonDb: JsonDbInterface;
+
+  constructor(jsonDb: JsonDbInterface, options: FsDbClientOptions) {
+    super();
+
     this.#dbFile = options.dbFile;
     this.#jsonDb = jsonDb;
   }
@@ -61,16 +73,16 @@ export class FsDbClient<T extends Item> {
     }
   }
 
-  async putItem(item: T): Promise<void> {
-    const id = item[this.#idProp];
+  async putItem(id: string, item: T): Promise<void> {
     this.#assertValidId(id);
 
     try {
       await this.#jsonDb.push(this.#itemPath(id), item, /* overwrite */ true);
+      this.emit(FsDbClient.ITEM_STORED, { id, item });
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();
-        await this.putItem(item);
+        await this.putItem(id, item);
         return;
       }
 
@@ -80,7 +92,19 @@ export class FsDbClient<T extends Item> {
 
   async deleteItem(id: string): Promise<void> {
     this.#assertValidId(id);
-    await this.#jsonDb.delete(this.#itemPath(id));
+
+    try {
+      await this.#jsonDb.delete(this.#itemPath(id));
+      this.emit(FsDbClient.ITEM_DELETED, { id });
+    } catch (error) {
+      if (this.#isDbUninitialized(error)) {
+        await this.#initializeDbFile();
+        await this.deleteItem(id);
+        return;
+      }
+
+      throw error;
+    }
   }
 
   #itemPath(id: Id) {
@@ -88,8 +112,14 @@ export class FsDbClient<T extends Item> {
   }
 
   #assertValidId(id: unknown): asserts id is Id {
-    if (typeof id !== "string" || id.match(/\//)) {
-      throw new Error("The '/' character is not allowed in item ids");
+    if (typeof id !== "string") {
+      throw new Error(`Expected id to be a string, but got '${typeof id}'.`);
+    }
+
+    if (id.includes("/")) {
+      throw new Error(
+        `The '/' character is not allowed in item ids. Invalid value was '${id}'.`
+      );
     }
   }
 
@@ -105,3 +135,34 @@ export class FsDbClient<T extends Item> {
     return writeFile(this.#dbFile, JSON.stringify({}), { encoding: "utf8" });
   }
 }
+
+const createJsonDbStub = <T>(
+  options: NullFsDbClientOptions<T> | undefined
+): JsonDbInterface => {
+  return {
+    async getData(dataPath) {
+      if (dataPath === "/") {
+        return options?.items ?? {};
+      } else {
+        const [_, id] = /^\/(.*)/.exec(dataPath) ?? [];
+        if (
+          !id ||
+          !options?.items ||
+          !Object.prototype.hasOwnProperty.call(options?.items, id)
+        ) {
+          throw new DataError("Can't find dataPath", DATA_PATH_NOT_FOUND);
+        }
+
+        return options?.items[id];
+      }
+    },
+
+    async push(_dataPath, _data, _override) {
+      // noop
+    },
+
+    async delete(_dataPath) {
+      // noop
+    },
+  };
+};
