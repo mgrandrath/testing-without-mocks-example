@@ -36,7 +36,7 @@ export const create: RequestHandler = async (infrastructure, request) => {
   return pipe(
     validateJoke({ ...jokeInput, jokeId }),
     matchEither<ValidationError, Joke, Response | Promise<Response>>(
-      (validationError) => badRequest(validationError),
+      (validationError) => badRequest({ message: validationError.message }),
       async (joke) => {
         await infrastructure.jokeRepo.add(joke);
         return created({ joke });
@@ -52,7 +52,7 @@ export const update: RequestHandler = async (infrastructure, request) => {
   return pipe(
     validateJoke({ ...jokeInput, jokeId }),
     matchEither<ValidationError, Joke, Response | Promise<Response>>(
-      (validationError) => badRequest(validationError),
+      (validationError) => badRequest({ message: validationError.message }),
       async (joke) => {
         await infrastructure.jokeRepo.add(joke);
         return noContent();
