@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isNone, some } from "fp-ts/lib/Option";
 import { Joke, createJokeId } from "../domain/joke";
-import { FsDbClient } from "./fs_db_client";
-import { JokeRepo } from "./joke-repo";
+import { FsDbClient, ItemStoredEvent } from "./fs_db_client";
+import { JokeAddedEvent, JokeRemovedEvent, JokeRepo } from "./joke-repo";
 import { createJoke } from "../spec-helpers/factories";
 import { recordEvents } from "../spec-helpers/record-events";
 import { createTmpDbFile } from "../spec-helpers/tmp-file";
@@ -135,7 +135,10 @@ describe("JokeRepo", () => {
   describe("add", () => {
     it("should add jokes", async () => {
       const fsDbClient = FsDbClient.createNull<Joke>();
-      const itemStoredEvents = recordEvents(fsDbClient, FsDbClient.ITEM_STORED);
+      const itemStoredEvents = recordEvents<ItemStoredEvent<Joke>>(
+        fsDbClient,
+        FsDbClient.ITEM_STORED
+      );
       const jokeRepo = new JokeRepo(fsDbClient);
 
       const joke = createJoke({
@@ -146,14 +149,19 @@ describe("JokeRepo", () => {
 
       await jokeRepo.add(joke);
 
-      expect(itemStoredEvents).toEqual([{ id: joke.jokeId, item: joke }]);
+      expect(itemStoredEvents.data()).toEqual([
+        { id: joke.jokeId, item: joke },
+      ]);
     });
 
     describe("null instance", () => {
       it("should emit a JOKE_ADDED event after adding a new joke", async () => {
         const fsDbClient = FsDbClient.createNull<Joke>();
         const jokeRepo = new JokeRepo(fsDbClient);
-        const jokeAddedEvents = recordEvents(jokeRepo, JokeRepo.JOKE_ADDED);
+        const jokeAddedEvents = recordEvents<JokeAddedEvent>(
+          jokeRepo,
+          JokeRepo.JOKE_ADDED
+        );
 
         const joke = createJoke({
           jokeId: createJokeId("joke-111"),
@@ -163,7 +171,7 @@ describe("JokeRepo", () => {
 
         await jokeRepo.add(joke);
 
-        expect(jokeAddedEvents).toEqual([
+        expect(jokeAddedEvents.data()).toEqual([
           {
             jokeId: "joke-111",
             question: "Was ist weiß und steht hinterm Baum?",
@@ -177,7 +185,7 @@ describe("JokeRepo", () => {
   describe("remove", () => {
     it("should remove a joke by id", async () => {
       const fsDbClient = FsDbClient.createNull<Joke>();
-      const itemDeletedEvents = recordEvents(
+      const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
         fsDbClient,
         FsDbClient.ITEM_DELETED
       );
@@ -185,18 +193,21 @@ describe("JokeRepo", () => {
 
       await jokeRepo.remove(createJokeId("joke-111"));
 
-      expect(itemDeletedEvents).toEqual([{ id: "joke-111" }]);
+      expect(jokeRemovedEvents.data()).toEqual([{ id: "joke-111" }]);
     });
 
     describe("null instance", () => {
       it("should emit a JOKE_REMOVED event after removing a joke", async () => {
         const fsDbClient = FsDbClient.createNull<Joke>();
         const jokeRepo = new JokeRepo(fsDbClient);
-        const jokeRemovedEvents = recordEvents(jokeRepo, JokeRepo.JOKE_REMOVED);
+        const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
+          jokeRepo,
+          JokeRepo.JOKE_REMOVED
+        );
 
         await jokeRepo.remove(createJokeId("joke-111"));
 
-        expect(jokeRemovedEvents).toEqual([
+        expect(jokeRemovedEvents.data()).toEqual([
           {
             jokeId: "joke-111",
           },

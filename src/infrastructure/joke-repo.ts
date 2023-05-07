@@ -12,6 +12,9 @@ type NullJokeRepoOptions = {
   jokes: Record<string, Joke>;
 };
 
+export type JokeAddedEvent = Joke;
+export type JokeRemovedEvent = { jokeId: JokeId };
+
 export class JokeRepo extends EventEmitter implements IJokeRepo {
   static create(options: JokeRepoOptions) {
     const fsDbClient = FsDbClient.create<Joke>({ dbFile: options.dbFile });
@@ -46,11 +49,13 @@ export class JokeRepo extends EventEmitter implements IJokeRepo {
 
   async add(joke: Joke): Promise<void> {
     await this.#fsDbClient.putItem(joke.jokeId, joke);
-    this.emit(JokeRepo.JOKE_ADDED, joke);
+    const jokeAddedEvent: JokeAddedEvent = joke;
+    this.emit(JokeRepo.JOKE_ADDED, jokeAddedEvent);
   }
 
   async remove(jokeId: JokeId): Promise<void> {
     await this.#fsDbClient.deleteItem(jokeId);
-    this.emit(JokeRepo.JOKE_REMOVED, { jokeId });
+    const jokeRemovedEvent: JokeRemovedEvent = { jokeId };
+    this.emit(JokeRepo.JOKE_REMOVED, jokeRemovedEvent);
   }
 }

@@ -7,7 +7,11 @@ import {
   createNullInfrastructure,
 } from "./spec-helpers/factories";
 import { recordEvents } from "./spec-helpers/record-events";
-import { JokeRepo } from "./infrastructure/joke-repo";
+import {
+  JokeAddedEvent,
+  JokeRemovedEvent,
+  JokeRepo,
+} from "./infrastructure/joke-repo";
 import { Infrastructure } from "./request-handlers/types";
 
 describe("server", () => {
@@ -51,7 +55,7 @@ describe("server", () => {
   it("should store jokes", async () => {
     const jokeInput = createJokeInput();
     const { infrastructure } = await createAndStartServer();
-    const jokeAddedEvents = recordEvents(
+    const jokeAddedEvents = recordEvents<JokeAddedEvent>(
       infrastructure.jokeRepo,
       JokeRepo.JOKE_ADDED
     );
@@ -64,7 +68,7 @@ describe("server", () => {
     });
 
     expect(response.status).toEqual(201);
-    expect(jokeAddedEvents).toEqual([
+    expect(jokeAddedEvents.data()).toEqual([
       {
         ...jokeInput,
         jokeId: expect.any(String),
@@ -95,7 +99,7 @@ describe("server", () => {
     const joke = createJoke();
     const jokeInput = createJokeInput();
     const { infrastructure } = await createAndStartServer();
-    const jokeAddedEvents = recordEvents(
+    const jokeAddedEvents = recordEvents<JokeAddedEvent>(
       infrastructure.jokeRepo,
       JokeRepo.JOKE_ADDED
     );
@@ -108,7 +112,7 @@ describe("server", () => {
     });
 
     expect(response.status).toEqual(204);
-    expect(jokeAddedEvents).toEqual([
+    expect(jokeAddedEvents.data()).toEqual([
       {
         ...jokeInput,
         jokeId: joke.jokeId,
@@ -118,7 +122,7 @@ describe("server", () => {
 
   it("should delete jokes", async () => {
     const { infrastructure } = await createAndStartServer();
-    const jokeRemovedEvents = recordEvents(
+    const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
       infrastructure.jokeRepo,
       JokeRepo.JOKE_REMOVED
     );
@@ -130,7 +134,7 @@ describe("server", () => {
     });
 
     expect(response.status).toEqual(204);
-    expect(jokeRemovedEvents).toEqual([
+    expect(jokeRemovedEvents.data()).toEqual([
       {
         jokeId: "joke-111",
       },

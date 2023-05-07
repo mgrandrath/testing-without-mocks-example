@@ -5,7 +5,11 @@ import {
   createNullInfrastructure,
   createRequest,
 } from "../spec-helpers/factories";
-import { JokeRepo } from "../infrastructure/joke-repo";
+import {
+  JokeAddedEvent,
+  JokeRemovedEvent,
+  JokeRepo,
+} from "../infrastructure/joke-repo";
 import { badRequest, created, noContent, notFound, ok } from "./responses";
 import * as Jokes from "./jokes";
 import { recordEvents } from "../spec-helpers/record-events";
@@ -73,7 +77,7 @@ describe("Jokes request handlers", () => {
       const uuid = Uuid.createNull("joke-111");
       const expectedJoke = { ...jokeInput, jokeId: "joke-111" };
       const infrastructure = createNullInfrastructure({ uuid });
-      const jokeAddedEvents = recordEvents(
+      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
         infrastructure.jokeRepo,
         JokeRepo.JOKE_ADDED
       );
@@ -81,14 +85,14 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.create(infrastructure, request);
 
-      expect(jokeAddedEvents).toEqual([expectedJoke]);
+      expect(jokeAddedEvents.data()).toEqual([expectedJoke]);
       expect(response).toEqual(created({ joke: expectedJoke }));
     });
 
     it("should respond with 'Bad request' when validation fails", async () => {
       const invalidJokeInput = createJokeInput({ question: undefined });
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents(
+      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
         infrastructure.jokeRepo,
         JokeRepo.JOKE_ADDED
       );
@@ -96,7 +100,7 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.create(infrastructure, request);
 
-      expect(jokeAddedEvents).toHaveLength(0);
+      expect(jokeAddedEvents.data()).toHaveLength(0);
       expect(response).toEqual(
         badRequest({ message: "Joke data is invalid. No joke!" })
       );
@@ -108,7 +112,7 @@ describe("Jokes request handlers", () => {
       const jokeInput = createJokeInput();
       const expectedJoke = { ...jokeInput, jokeId: "joke-111" };
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents(
+      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
         infrastructure.jokeRepo,
         JokeRepo.JOKE_ADDED
       );
@@ -119,14 +123,14 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.update(infrastructure, request);
 
-      expect(jokeAddedEvents).toEqual([expectedJoke]);
+      expect(jokeAddedEvents.data()).toEqual([expectedJoke]);
       expect(response).toEqual(noContent());
     });
 
     it("should respond with 'Bad request' when validation fails", async () => {
       const invalidJokeInput = createJokeInput({ question: undefined });
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents(
+      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
         infrastructure.jokeRepo,
         JokeRepo.JOKE_ADDED
       );
@@ -137,7 +141,7 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.update(infrastructure, request);
 
-      expect(jokeAddedEvents).toHaveLength(0);
+      expect(jokeAddedEvents.data()).toHaveLength(0);
       expect(response).toEqual(
         badRequest({ message: "Joke data is invalid. No joke!" })
       );
@@ -148,7 +152,7 @@ describe("Jokes request handlers", () => {
     it("should remove the given joke", async () => {
       const jokeId = "joke-111";
       const infrastructure = createNullInfrastructure();
-      const jokeRemovedEvents = recordEvents(
+      const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
         infrastructure.jokeRepo,
         JokeRepo.JOKE_REMOVED
       );
@@ -156,7 +160,7 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.destroy(infrastructure, request);
 
-      expect(jokeRemovedEvents).toEqual([{ jokeId }]);
+      expect(jokeRemovedEvents.data()).toEqual([{ jokeId }]);
       expect(response).toEqual(noContent());
     });
   });

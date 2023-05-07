@@ -18,6 +18,9 @@ type JsonDbInterface = Pick<JsonDB, "getData" | "push" | "delete">;
 const JSON_PARSE_ERROR = 1;
 const DATA_PATH_NOT_FOUND = 5;
 
+export type ItemStoredEvent<T extends Item> = { id: Id; item: T };
+export type ItemDeletedEvent = { id: Id };
+
 export function assertValidId(id: unknown): asserts id is Id {
   if (typeof id !== "string") {
     throw new Error(`Expected id to be a string, but got '${typeof id}'.`);
@@ -94,7 +97,8 @@ export class FsDbClient<T extends Item> extends EventEmitter {
 
     try {
       await this.#jsonDb.push(this.#itemPath(id), item, /* overwrite */ true);
-      this.emit(FsDbClient.ITEM_STORED, { id, item });
+      const itemStoredEvent: ItemStoredEvent<T> = { id, item };
+      this.emit(FsDbClient.ITEM_STORED, itemStoredEvent);
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();
@@ -111,7 +115,8 @@ export class FsDbClient<T extends Item> extends EventEmitter {
 
     try {
       await this.#jsonDb.delete(this.#itemPath(id));
-      this.emit(FsDbClient.ITEM_DELETED, { id });
+      const itemDeletedEvent: ItemDeletedEvent = { id };
+      this.emit(FsDbClient.ITEM_DELETED, itemDeletedEvent);
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();

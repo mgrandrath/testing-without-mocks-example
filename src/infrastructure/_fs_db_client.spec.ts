@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { isNone, some } from "fp-ts/lib/Option";
-import { FsDbClient, assertValidId } from "./fs_db_client";
+import {
+  FsDbClient,
+  ItemDeletedEvent,
+  ItemStoredEvent,
+  assertValidId,
+} from "./fs_db_client";
 import { recordEvents } from "../spec-helpers/record-events";
 import { TmpFile, createTmpDbFile } from "../spec-helpers/tmp-file";
 
@@ -244,7 +249,7 @@ describe("FsDbClient", () => {
       it("should emit an event when an item has been stored", async () => {
         type Item = { data: string };
         const fsDbClient = FsDbClient.createNull<Item>();
-        const itemStoredEvents = recordEvents(
+        const itemStoredEvents = recordEvents<ItemStoredEvent<Item>>(
           fsDbClient,
           FsDbClient.ITEM_STORED
         );
@@ -253,7 +258,7 @@ describe("FsDbClient", () => {
           data: "some data",
         });
 
-        expect(itemStoredEvents).toEqual([
+        expect(itemStoredEvents.data()).toEqual([
           {
             id: "item-111",
             item: {
@@ -278,14 +283,14 @@ describe("FsDbClient", () => {
       it("should emit an event when an item has been deleted", async () => {
         type Item = { data: string };
         const fsDbClient = FsDbClient.createNull<Item>();
-        const itemDeletedEvents = recordEvents(
+        const itemDeletedEvents = recordEvents<ItemDeletedEvent>(
           fsDbClient,
           FsDbClient.ITEM_DELETED
         );
 
         await fsDbClient.deleteItem("item-111");
 
-        expect(itemDeletedEvents).toEqual([{ id: "item-111" }]);
+        expect(itemDeletedEvents.data()).toEqual([{ id: "item-111" }]);
       });
 
       it("should throw a configurable error", async () => {
