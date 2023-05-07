@@ -20,15 +20,25 @@ describe("server", () => {
   const createAndStartServer = async (overrides?: Partial<Infrastructure>) => {
     const infrastructure = createNullInfrastructure(overrides);
     server = createServer(infrastructure);
-    await server.start(3030);
+    await server.start(0);
 
     return {
+      port: server.port,
       infrastructure,
     };
   };
 
   afterEach(async () => {
     await server?.stop();
+  });
+
+  describe("startup", () => {
+    it("should throw an error when reading the port before server has started", () => {
+      const infrastructure = createNullInfrastructure();
+      const server = createServer(infrastructure);
+
+      expect(() => server.port).toThrow("Server has not been started");
+    });
   });
 
   it("shoud retrieve all the jokes", async () => {
@@ -40,11 +50,11 @@ describe("server", () => {
         [joke2.jokeId]: joke2,
       },
     });
-    await createAndStartServer({ jokeRepo });
+    const { port } = await createAndStartServer({ jokeRepo });
 
     const response = await axios({
       method: "GET",
-      baseURL: "http://localhost:3030",
+      baseURL: `http://localhost:${port}`,
       url: `/jokes`,
     });
 
@@ -54,7 +64,7 @@ describe("server", () => {
 
   it("should store jokes", async () => {
     const jokeInput = createJokeInput();
-    const { infrastructure } = await createAndStartServer();
+    const { port, infrastructure } = await createAndStartServer();
     const jokeAddedEvents = recordEvents<JokeAddedEvent>(
       infrastructure.jokeRepo,
       JokeRepo.JOKE_ADDED
@@ -62,7 +72,7 @@ describe("server", () => {
 
     const response = await axios({
       method: "POST",
-      baseURL: "http://localhost:3030",
+      baseURL: `http://localhost:${port}`,
       url: "/jokes",
       data: jokeInput,
     });
@@ -83,11 +93,11 @@ describe("server", () => {
         [joke.jokeId]: joke,
       },
     });
-    await createAndStartServer({ jokeRepo });
+    const { port } = await createAndStartServer({ jokeRepo });
 
     const response = await axios({
       method: "GET",
-      baseURL: "http://localhost:3030",
+      baseURL: `http://localhost:${port}`,
       url: `/jokes/${joke.jokeId}`,
     });
 
@@ -98,7 +108,7 @@ describe("server", () => {
   it("should update jokes", async () => {
     const joke = createJoke();
     const jokeInput = createJokeInput();
-    const { infrastructure } = await createAndStartServer();
+    const { port, infrastructure } = await createAndStartServer();
     const jokeAddedEvents = recordEvents<JokeAddedEvent>(
       infrastructure.jokeRepo,
       JokeRepo.JOKE_ADDED
@@ -106,7 +116,7 @@ describe("server", () => {
 
     const response = await axios({
       method: "PUT",
-      baseURL: "http://localhost:3030",
+      baseURL: `http://localhost:${port}`,
       url: `/jokes/${joke.jokeId}`,
       data: jokeInput,
     });
@@ -121,7 +131,7 @@ describe("server", () => {
   });
 
   it("should delete jokes", async () => {
-    const { infrastructure } = await createAndStartServer();
+    const { port, infrastructure } = await createAndStartServer();
     const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
       infrastructure.jokeRepo,
       JokeRepo.JOKE_REMOVED
@@ -129,7 +139,7 @@ describe("server", () => {
 
     const response = await axios({
       method: "DELETE",
-      baseURL: "http://localhost:3030",
+      baseURL: `http://localhost:${port}`,
       url: "/jokes/joke-111",
     });
 

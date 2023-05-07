@@ -8,6 +8,7 @@ import {
 import * as Jokes from "./request-handlers/jokes";
 
 export type Server = {
+  port: number;
   start: (port: number) => Promise<void>;
   stop: () => Promise<void>;
 };
@@ -18,7 +19,7 @@ const createRequest = (httpRequest: express.Request): Request => ({
 });
 
 export const createServer = (infrastructure: Infrastructure): Server => {
-  let httpServer: HttpServer;
+  let httpServer: HttpServer | undefined;
 
   const wrapRequestHandler =
     (handleRequest: RequestHandler): express.RequestHandler =>
@@ -52,6 +53,20 @@ export const createServer = (infrastructure: Infrastructure): Server => {
   );
 
   return {
+    get port() {
+      const addressInfo = httpServer?.address();
+      if (!addressInfo) {
+        throw new Error("Server has not been started");
+      }
+      if (typeof addressInfo === "string") {
+        throw new Error(
+          "Port number is not available because server is connected to a pipe"
+        );
+      }
+
+      return addressInfo.port;
+    },
+
     start: (port: number) => {
       return new Promise((resolve, reject) => {
         httpServer = app.listen(port, resolve);
