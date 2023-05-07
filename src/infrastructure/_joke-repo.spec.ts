@@ -7,6 +7,8 @@ import { createJoke } from "../spec-helpers/factories";
 import { recordEvents } from "../spec-helpers/record-events";
 import { createTmpDbFile } from "../spec-helpers/tmp-file";
 
+const irrelevantId = createJokeId("irrelevant-id");
+
 describe("JokeRepo", () => {
   describe("integration", () => {
     it("should write to the filesystem", async () => {
@@ -49,7 +51,7 @@ describe("JokeRepo", () => {
       it("should return nothing by default", async () => {
         const jokeRepo = JokeRepo.createNull();
 
-        const joke = await jokeRepo.findByJokeId(createJokeId("irrelevant"));
+        const joke = await jokeRepo.findByJokeId(irrelevantId);
 
         expect(isNone(joke)).toEqual(true);
       });
@@ -71,6 +73,16 @@ describe("JokeRepo", () => {
 
         expect(await jokeRepo.findByJokeId(joke1.jokeId)).toEqual(some(joke1));
         expect(await jokeRepo.findByJokeId(joke2.jokeId)).toEqual(some(joke2));
+      });
+
+      it("should throw a configurable error", async () => {
+        const jokeRepo = JokeRepo.createNull({
+          error: new Error("some error"),
+        });
+
+        await expect(jokeRepo.findByJokeId(irrelevantId)).rejects.toThrow(
+          "some error"
+        );
       });
     });
   });
@@ -102,7 +114,7 @@ describe("JokeRepo", () => {
     });
 
     describe("null instance", () => {
-      it("should return nothing by default", async () => {
+      it("should return an empty list by default", async () => {
         const jokeRepo = JokeRepo.createNull();
 
         const jokes = await jokeRepo.findAll();
@@ -128,6 +140,14 @@ describe("JokeRepo", () => {
         const jokes = await jokeRepo.findAll();
 
         expect(jokes).toEqual([joke1, joke2]);
+      });
+
+      it("should throw a configurable error", async () => {
+        const jokeRepo = JokeRepo.createNull({
+          error: new Error("some error"),
+        });
+
+        await expect(jokeRepo.findAll()).rejects.toThrow("some error");
       });
     });
   });
@@ -179,6 +199,14 @@ describe("JokeRepo", () => {
           },
         ]);
       });
+
+      it("should throw a configurable error", async () => {
+        const jokeRepo = JokeRepo.createNull({
+          error: new Error("some error"),
+        });
+
+        await expect(jokeRepo.add(createJoke())).rejects.toThrow("some error");
+      });
     });
   });
 
@@ -212,6 +240,16 @@ describe("JokeRepo", () => {
             jokeId: "joke-111",
           },
         ]);
+      });
+
+      it("should throw a configurable error", async () => {
+        const jokeRepo = JokeRepo.createNull({
+          error: new Error("some error"),
+        });
+
+        await expect(jokeRepo.remove(irrelevantId)).rejects.toThrow(
+          "some error"
+        );
       });
     });
   });

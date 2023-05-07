@@ -9,7 +9,8 @@ type JokeRepoOptions = {
 };
 
 type NullJokeRepoOptions = {
-  jokes: Record<string, Joke>;
+  jokes?: Record<string, Joke>;
+  error?: Error;
 };
 
 export type JokeAddedEvent = Joke;
@@ -24,6 +25,7 @@ export class JokeRepo extends EventEmitter implements IJokeRepo {
   static createNull(options?: NullJokeRepoOptions) {
     const fsDbClient = FsDbClient.createNull<Joke>({
       items: options?.jokes,
+      error: options?.error,
     });
     return new JokeRepo(fsDbClient);
   }
