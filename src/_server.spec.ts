@@ -41,7 +41,7 @@ describe("server", () => {
     });
   });
 
-  it("shoud retrieve all the jokes", async () => {
+  it("should retrieve all the jokes", async () => {
     const joke1 = createJoke();
     const joke2 = createJoke();
     const jokeRepo = JokeRepo.createNull({
@@ -149,5 +149,23 @@ describe("server", () => {
         jokeId: "joke-111",
       },
     ]);
+  });
+
+  it("should respond with a 500 error when an exception is thrown", async () => {
+    const { port } = await createAndStartServer({
+      jokeRepo: JokeRepo.createNull({
+        error: new Error("Some internal failure"),
+      }),
+    });
+
+    const response = await axios({
+      method: "GET",
+      baseURL: `http://localhost:${port}`,
+      url: "/jokes",
+      validateStatus: () => true,
+    });
+
+    expect(response.status).toEqual(500);
+    expect(response.data).toEqual({ message: "Internal server error" });
   });
 });

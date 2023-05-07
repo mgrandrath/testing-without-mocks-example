@@ -47,7 +47,7 @@ export const createServer = (infrastructure: Infrastructure): Server => {
       httpResponse: express.Response,
       _next: express.NextFunction
     ) => {
-      console.error({ httpRequest, error });
+      // TODO log the error
       httpResponse.status(500).json({ message: "Internal server error" });
     }
   );
