@@ -29,15 +29,52 @@ describe("server", () => {
   };
 
   afterEach(async () => {
-    await server?.stop();
+    if (server?.isRunning()) {
+      await server.stop();
+    }
   });
 
-  describe("startup", () => {
+  describe("startup and shutdown", () => {
+    it("should set a flag when it's listening", async () => {
+      const infrastructure = createNullInfrastructure();
+      const server = createServer(infrastructure);
+
+      try {
+        expect(server.isRunning()).toEqual(false);
+
+        await server.start(0);
+        expect(server.isRunning()).toEqual(true);
+
+        await server.stop();
+        expect(server.isRunning()).toEqual(false);
+      } finally {
+        if (server.isRunning()) {
+          await server.stop();
+        }
+      }
+    });
+
     it("should throw an error when reading the port before server has started", () => {
       const infrastructure = createNullInfrastructure();
       const server = createServer(infrastructure);
 
-      expect(() => server.port).toThrow("Server has not been started");
+      expect(() => server.port).toThrow("Server is not running");
+    });
+
+    it("should throw an error when stopping the server before it has started", async () => {
+      const infrastructure = createNullInfrastructure();
+      const server = createServer(infrastructure);
+
+      await expect(server.stop()).rejects.toThrow("Server is not running");
+    });
+
+    it("should throw an error when startup fails (e.g. because the port is already in use)", async () => {
+      const infrastructure = createNullInfrastructure();
+      const server1 = createServer(infrastructure);
+      await server1.start(0);
+
+      const server2 = createServer(infrastructure);
+      await expect(server2.start(server1.port)).rejects.toThrow("EADDRINUSE");
     });
   });
 

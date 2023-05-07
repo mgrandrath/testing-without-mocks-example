@@ -1,4 +1,4 @@
-import { Server as HttpServer } from "node:http";
+import { createServer as createNodeHttpServer } from "node:http";
 import express from "express";
 import {
   Infrastructure,
@@ -9,6 +9,7 @@ import * as Jokes from "./request-handlers/jokes";
 
 export type Server = {
   port: number;
+  isRunning: () => boolean;
   start: (port: number) => Promise<void>;
   stop: () => Promise<void>;
 };
@@ -19,8 +20,6 @@ const createRequest = (httpRequest: express.Request): Request => ({
 });
 
 export const createServer = (infrastructure: Infrastructure): Server => {
-  let httpServer: HttpServer | undefined;
-
   const wrapRequestHandler =
     (handleRequest: RequestHandler): express.RequestHandler =>
     async (httpRequest, httpResponse, next) => {
@@ -34,12 +33,15 @@ export const createServer = (infrastructure: Infrastructure): Server => {
     };
 
   const app = express();
+  const httpServer = createNodeHttpServer(app);
+
   app.use(express.json());
   app.get("/jokes", wrapRequestHandler(Jokes.index));
   app.post("/jokes", wrapRequestHandler(Jokes.create));
   app.get("/jokes/:jokeId", wrapRequestHandler(Jokes.show));
   app.put("/jokes/:jokeId", wrapRequestHandler(Jokes.update));
   app.delete("/jokes/:jokeId", wrapRequestHandler(Jokes.destroy));
+
   app.use(
     (
       error: unknown,
@@ -56,7 +58,7 @@ export const createServer = (infrastructure: Infrastructure): Server => {
     get port() {
       const addressInfo = httpServer?.address();
       if (!addressInfo) {
-        throw new Error("Server has not been started");
+        throw new Error("Server is not running");
       }
       if (typeof addressInfo === "string") {
         throw new Error(
@@ -67,19 +69,19 @@ export const createServer = (infrastructure: Infrastructure): Server => {
       return addressInfo.port;
     },
 
+    isRunning: () => Boolean(httpServer?.listening),
+
     start: (port: number) => {
       return new Promise((resolve, reject) => {
-        httpServer = app.listen(port, resolve);
-        httpServer.once("error", (error) => {
-          reject(error);
-        });
+        httpServer.once("error", reject);
+        httpServer.listen(port, resolve);
       });
     },
 
     stop: () => {
       return new Promise((resolve, reject) => {
-        if (!httpServer) {
-          resolve();
+        if (!httpServer?.listening) {
+          reject(new Error("Server is not running"));
           return;
         }
 
