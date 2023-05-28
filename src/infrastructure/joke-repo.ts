@@ -1,8 +1,12 @@
-import EventEmitter from "node:events";
 import { Option } from "fp-ts/lib/Option";
 import { Joke, JokeId } from "../domain/joke";
 import { FsDbClient } from "./fs_db_client";
-import { IJokeRepo } from "../request-handlers/types";
+import {
+  IJokeRepo,
+  JokeAddedEvent,
+  JokeRemovedEvent,
+} from "../request-handlers/types";
+import { EventEmitter } from "../utils/event-emitter";
 
 type JokeRepoOptions = {
   dbFile: string;
@@ -13,10 +17,7 @@ type NullJokeRepoOptions = {
   error?: Error;
 };
 
-export type JokeAddedEvent = Joke;
-export type JokeRemovedEvent = { jokeId: JokeId };
-
-export class JokeRepo extends EventEmitter implements IJokeRepo {
+export class JokeRepo implements IJokeRepo {
   static create(options: JokeRepoOptions) {
     const fsDbClient = FsDbClient.create<Joke>({ dbFile: options.dbFile });
     return new JokeRepo(fsDbClient);
@@ -30,14 +31,14 @@ export class JokeRepo extends EventEmitter implements IJokeRepo {
     return new JokeRepo(fsDbClient);
   }
 
-  static JOKE_ADDED: "JokeRepo:joke-added";
-  static JOKE_REMOVED: "JokeRepo:joke-removed";
-
   #fsDbClient: FsDbClient<Joke>;
 
-  constructor(fsDbClient: FsDbClient<Joke>) {
-    super();
+  events = {
+    jokeAdded: new EventEmitter<JokeAddedEvent>(),
+    jokeRemoved: new EventEmitter<JokeRemovedEvent>(),
+  };
 
+  constructor(fsDbClient: FsDbClient<Joke>) {
     this.#fsDbClient = fsDbClient;
   }
 
@@ -52,12 +53,12 @@ export class JokeRepo extends EventEmitter implements IJokeRepo {
   async add(joke: Joke): Promise<void> {
     await this.#fsDbClient.putItem(joke.jokeId, joke);
     const jokeAddedEvent: JokeAddedEvent = joke;
-    this.emit(JokeRepo.JOKE_ADDED, jokeAddedEvent);
+    this.events.jokeAdded.emit(jokeAddedEvent);
   }
 
   async remove(jokeId: JokeId): Promise<void> {
     await this.#fsDbClient.deleteItem(jokeId);
     const jokeRemovedEvent: JokeRemovedEvent = { jokeId };
-    this.emit(JokeRepo.JOKE_REMOVED, jokeRemovedEvent);
+    this.events.jokeRemoved.emit(jokeRemovedEvent);
   }
 }

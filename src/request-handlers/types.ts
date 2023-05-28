@@ -1,12 +1,19 @@
-import EventEmitter from "node:events";
 import { Option } from "fp-ts/lib/Option";
 import { Joke, JokeId } from "../domain/joke";
+import { EventEmitter } from "../utils/event-emitter";
 
 export interface IUuid {
   uuidV4(): string;
 }
 
-export interface IJokeRepo extends EventEmitter {
+export type JokeAddedEvent = Joke;
+export type JokeRemovedEvent = { jokeId: JokeId };
+
+export interface IJokeRepo {
+  events: {
+    jokeAdded: EventEmitter<JokeAddedEvent>;
+    jokeRemoved: EventEmitter<JokeRemovedEvent>;
+  };
   findAll(): Promise<Joke[]>;
   findByJokeId(jokeId: JokeId): Promise<Option<Joke>>;
   add(joke: Joke): Promise<void>;

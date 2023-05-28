@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { isNone, some } from "fp-ts/lib/Option";
-import {
-  FsDbClient,
-  ItemDeletedEvent,
-  ItemStoredEvent,
-  assertValidId,
-} from "./fs_db_client";
+import { FsDbClient, assertValidId } from "./fs_db_client";
 import { recordEvents } from "../spec-helpers/record-events";
 import { TmpFile, createTmpDbFile } from "../spec-helpers/tmp-file";
 
@@ -249,10 +244,7 @@ describe("FsDbClient", () => {
       it("should emit an event when an item has been stored", async () => {
         type Item = { data: string };
         const fsDbClient = FsDbClient.createNull<Item>();
-        const itemStoredEvents = recordEvents<ItemStoredEvent<Item>>(
-          fsDbClient,
-          FsDbClient.ITEM_STORED
-        );
+        const itemStoredEvents = recordEvents(fsDbClient.events.itemStored);
 
         await fsDbClient.putItem("item-111", {
           data: "some data",
@@ -283,10 +275,7 @@ describe("FsDbClient", () => {
       it("should emit an event when an item has been deleted", async () => {
         type Item = { data: string };
         const fsDbClient = FsDbClient.createNull<Item>();
-        const itemDeletedEvents = recordEvents<ItemDeletedEvent>(
-          fsDbClient,
-          FsDbClient.ITEM_DELETED
-        );
+        const itemDeletedEvents = recordEvents(fsDbClient.events.itemDeleted);
 
         await fsDbClient.deleteItem("item-111");
 

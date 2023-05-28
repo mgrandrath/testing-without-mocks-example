@@ -1,17 +1,17 @@
-import EventEmitter from "node:events";
+import { EventEmitter } from "../utils/event-emitter";
 
 type EventRecorder<Event> = {
   data: () => Event[];
 };
 
-export const recordEvents = <Event>(
-  emitter: EventEmitter,
-  eventType: string
-): EventRecorder<Event> => {
-  const events: Event[] = [];
+export const recordEvents = <TEvent = unknown>(
+  eventEmitter: EventEmitter<TEvent>
+): EventRecorder<TEvent> => {
+  const events: TEvent[] = [];
 
-  const handleEvent = (event: Event) => events.push(event);
-  emitter.on(eventType, handleEvent);
+  eventEmitter.addListener((event) => {
+    events.push(event);
+  });
 
   return {
     data: () => [...events],

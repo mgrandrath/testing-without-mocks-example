@@ -7,11 +7,7 @@ import {
   createNullInfrastructure,
 } from "./spec-helpers/factories";
 import { recordEvents } from "./spec-helpers/record-events";
-import {
-  JokeAddedEvent,
-  JokeRemovedEvent,
-  JokeRepo,
-} from "./infrastructure/joke-repo";
+import { JokeRepo } from "./infrastructure/joke-repo";
 import { Infrastructure } from "./request-handlers/types";
 
 describe("server", () => {
@@ -102,9 +98,8 @@ describe("server", () => {
   it("should store jokes", async () => {
     const jokeInput = createJokeInput();
     const { port, infrastructure } = await createAndStartServer();
-    const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-      infrastructure.jokeRepo,
-      JokeRepo.JOKE_ADDED
+    const jokeAddedEvents = recordEvents(
+      infrastructure.jokeRepo.events.jokeAdded
     );
 
     const response = await axios({
@@ -146,9 +141,8 @@ describe("server", () => {
     const joke = createJoke();
     const jokeInput = createJokeInput();
     const { port, infrastructure } = await createAndStartServer();
-    const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-      infrastructure.jokeRepo,
-      JokeRepo.JOKE_ADDED
+    const jokeAddedEvents = recordEvents(
+      infrastructure.jokeRepo.events.jokeAdded
     );
 
     const response = await axios({
@@ -169,9 +163,8 @@ describe("server", () => {
 
   it("should delete jokes", async () => {
     const { port, infrastructure } = await createAndStartServer();
-    const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
-      infrastructure.jokeRepo,
-      JokeRepo.JOKE_REMOVED
+    const jokeRemovedEvents = recordEvents(
+      infrastructure.jokeRepo.events.jokeRemoved
     );
 
     const response = await axios({

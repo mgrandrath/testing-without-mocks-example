@@ -1,4 +1,3 @@
-import EventEmitter from "node:events";
 import { writeFile } from "node:fs/promises";
 import {
   Config as JsonDbConfig,
@@ -7,6 +6,7 @@ import {
   DataError,
 } from "node-json-db";
 import { Option, none, some } from "fp-ts/lib/Option";
+import { EventEmitter } from "../utils/event-emitter";
 
 type FsDbClientOptions = { dbFile: string };
 type NullFsDbClientOptions<T> = { items?: Record<string, T>; error?: Error };
@@ -37,7 +37,7 @@ export function assertValidId(id: unknown): asserts id is Id {
   }
 }
 
-export class FsDbClient<T extends Item> extends EventEmitter {
+export class FsDbClient<TItem extends Item> {
   static create<T extends Item>(options: FsDbClientOptions) {
     const jsonDbConfig = new JsonDbConfig(
       options.dbFile,
@@ -55,25 +55,25 @@ export class FsDbClient<T extends Item> extends EventEmitter {
     });
   }
 
-  static ITEM_STORED = "FsDbClient:item-stored";
-  static ITEM_DELETED = "FsDbClient:item-deleted";
-
   #dbFile: string;
   #jsonDb: JsonDbInterface;
 
-  constructor(jsonDb: JsonDbInterface, options: FsDbClientOptions) {
-    super();
+  events = {
+    itemDeleted: new EventEmitter<ItemDeletedEvent>(),
+    itemStored: new EventEmitter<ItemStoredEvent<TItem>>(),
+  };
 
+  constructor(jsonDb: JsonDbInterface, options: FsDbClientOptions) {
     this.#dbFile = options.dbFile;
     this.#jsonDb = jsonDb;
   }
 
-  async listItems(): Promise<T[]> {
+  async listItems(): Promise<TItem[]> {
     const itemsById = await this.#jsonDb.getData("/");
-    return Object.values<T>(itemsById);
+    return Object.values<TItem>(itemsById);
   }
 
-  async getItem(id: string): Promise<Option<T>> {
+  async getItem(id: string): Promise<Option<TItem>> {
     assertValidId(id);
 
     try {
@@ -92,13 +92,13 @@ export class FsDbClient<T extends Item> extends EventEmitter {
     }
   }
 
-  async putItem(id: string, item: T): Promise<void> {
+  async putItem(id: string, item: TItem): Promise<void> {
     assertValidId(id);
 
     try {
       await this.#jsonDb.push(this.#itemPath(id), item, /* overwrite */ true);
-      const itemStoredEvent: ItemStoredEvent<T> = { id, item };
-      this.emit(FsDbClient.ITEM_STORED, itemStoredEvent);
+      const itemStoredEvent: ItemStoredEvent<TItem> = { id, item };
+      this.events.itemStored.emit(itemStoredEvent);
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();
@@ -116,7 +116,7 @@ export class FsDbClient<T extends Item> extends EventEmitter {
     try {
       await this.#jsonDb.delete(this.#itemPath(id));
       const itemDeletedEvent: ItemDeletedEvent = { id };
-      this.emit(FsDbClient.ITEM_DELETED, itemDeletedEvent);
+      this.events.itemDeleted.emit(itemDeletedEvent);
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();

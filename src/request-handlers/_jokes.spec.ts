@@ -5,11 +5,7 @@ import {
   createNullInfrastructure,
   createRequest,
 } from "../spec-helpers/factories";
-import {
-  JokeAddedEvent,
-  JokeRemovedEvent,
-  JokeRepo,
-} from "../infrastructure/joke-repo";
+import { JokeRepo } from "../infrastructure/joke-repo";
 import { badRequest, created, noContent, notFound, ok } from "./responses";
 import * as Jokes from "./jokes";
 import { recordEvents } from "../spec-helpers/record-events";
@@ -77,9 +73,8 @@ describe("Jokes request handlers", () => {
       const uuid = Uuid.createNull("joke-111");
       const expectedJoke = { ...jokeInput, jokeId: "joke-111" };
       const infrastructure = createNullInfrastructure({ uuid });
-      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-        infrastructure.jokeRepo,
-        JokeRepo.JOKE_ADDED
+      const jokeAddedEvents = recordEvents(
+        infrastructure.jokeRepo.events.jokeAdded
       );
       const request = createRequest({ data: jokeInput });
 
@@ -92,9 +87,8 @@ describe("Jokes request handlers", () => {
     it("should respond with 'Bad request' when validation fails", async () => {
       const invalidJokeInput = createJokeInput({ question: undefined });
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-        infrastructure.jokeRepo,
-        JokeRepo.JOKE_ADDED
+      const jokeAddedEvents = recordEvents(
+        infrastructure.jokeRepo.events.jokeAdded
       );
       const request = createRequest({ data: invalidJokeInput });
 
@@ -112,9 +106,8 @@ describe("Jokes request handlers", () => {
       const jokeInput = createJokeInput();
       const expectedJoke = { ...jokeInput, jokeId: "joke-111" };
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-        infrastructure.jokeRepo,
-        JokeRepo.JOKE_ADDED
+      const jokeAddedEvents = recordEvents(
+        infrastructure.jokeRepo.events.jokeAdded
       );
       const request = createRequest({
         params: { jokeId: "joke-111" },
@@ -130,9 +123,8 @@ describe("Jokes request handlers", () => {
     it("should respond with 'Bad request' when validation fails", async () => {
       const invalidJokeInput = createJokeInput({ question: undefined });
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-        infrastructure.jokeRepo,
-        JokeRepo.JOKE_ADDED
+      const jokeAddedEvents = recordEvents(
+        infrastructure.jokeRepo.events.jokeAdded
       );
       const request = createRequest({
         params: { jokeId: "joke-111" },
@@ -152,9 +144,8 @@ describe("Jokes request handlers", () => {
     it("should remove the given joke", async () => {
       const jokeId = "joke-111";
       const infrastructure = createNullInfrastructure();
-      const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
-        infrastructure.jokeRepo,
-        JokeRepo.JOKE_REMOVED
+      const jokeRemovedEvents = recordEvents(
+        infrastructure.jokeRepo.events.jokeRemoved
       );
       const request = createRequest({ params: { jokeId } });
 

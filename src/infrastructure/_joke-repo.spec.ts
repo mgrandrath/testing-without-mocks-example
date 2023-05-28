@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isNone, some } from "fp-ts/lib/Option";
 import { Joke, createJokeId } from "../domain/joke";
-import { FsDbClient, ItemStoredEvent } from "./fs_db_client";
-import { JokeAddedEvent, JokeRemovedEvent, JokeRepo } from "./joke-repo";
+import { FsDbClient } from "./fs_db_client";
+import { JokeRepo } from "./joke-repo";
 import { createJoke } from "../spec-helpers/factories";
 import { recordEvents } from "../spec-helpers/record-events";
 import { createTmpDbFile } from "../spec-helpers/tmp-file";
@@ -155,10 +155,7 @@ describe("JokeRepo", () => {
   describe("add", () => {
     it("should add jokes", async () => {
       const fsDbClient = FsDbClient.createNull<Joke>();
-      const itemStoredEvents = recordEvents<ItemStoredEvent<Joke>>(
-        fsDbClient,
-        FsDbClient.ITEM_STORED
-      );
+      const itemStoredEvents = recordEvents(fsDbClient.events.itemStored);
       const jokeRepo = new JokeRepo(fsDbClient);
 
       const joke = createJoke({
@@ -178,10 +175,7 @@ describe("JokeRepo", () => {
       it("should emit a JOKE_ADDED event after adding a new joke", async () => {
         const fsDbClient = FsDbClient.createNull<Joke>();
         const jokeRepo = new JokeRepo(fsDbClient);
-        const jokeAddedEvents = recordEvents<JokeAddedEvent>(
-          jokeRepo,
-          JokeRepo.JOKE_ADDED
-        );
+        const jokeAddedEvents = recordEvents(jokeRepo.events.jokeAdded);
 
         const joke = createJoke({
           jokeId: createJokeId("joke-111"),
@@ -213,10 +207,7 @@ describe("JokeRepo", () => {
   describe("remove", () => {
     it("should remove a joke by id", async () => {
       const fsDbClient = FsDbClient.createNull<Joke>();
-      const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
-        fsDbClient,
-        FsDbClient.ITEM_DELETED
-      );
+      const jokeRemovedEvents = recordEvents(fsDbClient.events.itemDeleted);
       const jokeRepo = new JokeRepo(fsDbClient);
 
       await jokeRepo.remove(createJokeId("joke-111"));
@@ -228,10 +219,7 @@ describe("JokeRepo", () => {
       it("should emit a JOKE_REMOVED event after removing a joke", async () => {
         const fsDbClient = FsDbClient.createNull<Joke>();
         const jokeRepo = new JokeRepo(fsDbClient);
-        const jokeRemovedEvents = recordEvents<JokeRemovedEvent>(
-          jokeRepo,
-          JokeRepo.JOKE_REMOVED
-        );
+        const jokeRemovedEvents = recordEvents(jokeRepo.events.jokeRemoved);
 
         await jokeRepo.remove(createJokeId("joke-111"));
 
