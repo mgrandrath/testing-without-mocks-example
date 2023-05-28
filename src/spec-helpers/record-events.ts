@@ -4,7 +4,7 @@ type EventRecorder<Event> = {
   data: () => Event[];
 };
 
-export const recordEvents = <TEvent = unknown>(
+export const recordEvents = <TEvent>(
   eventEmitter: EventEmitter<TEvent>
 ): EventRecorder<TEvent> => {
   const events: TEvent[] = [];
