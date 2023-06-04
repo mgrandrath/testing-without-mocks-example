@@ -148,8 +148,7 @@ describe("FsDbClient", () => {
         dbFile: tmpFile.path,
       });
 
-      // test fails if this throws an error
-      await fsDbClient.deleteItem("item-111");
+      await expect(fsDbClient.deleteItem("item-111")).resolves.not.toThrow();
     });
   });
 
@@ -164,8 +163,7 @@ describe("FsDbClient", () => {
 
       expect(await fsDbClient.listItems()).toEqual([]);
       expect(isNone(await fsDbClient.getItem("item-111"))).toEqual(true);
-      // test fails if this throws an error
-      await fsDbClient.deleteItem("item-111");
+      await expect(fsDbClient.deleteItem("item-111")).resolves.not.toThrow();
     });
 
     describe("getItem", () => {
