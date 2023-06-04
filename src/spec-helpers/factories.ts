@@ -1,9 +1,10 @@
 import { v4 as uuid } from "uuid";
 import { Joke, createJokeId } from "../domain/joke";
-import { Infrastructure, Request } from "../request-handlers/types";
+import { Request } from "../request-handlers/types";
 import { JokeInput } from "../request-handlers/jokes";
 import { Uuid } from "../infrastructure/uuid";
 import { JokeRepo } from "../infrastructure/joke-repo";
+import { Infrastructure } from "../infrastructure/create";
 
 export const createNullInfrastructure = (
   overrides?: Partial<Infrastructure>

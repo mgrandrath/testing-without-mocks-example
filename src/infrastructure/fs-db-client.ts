@@ -6,8 +6,7 @@ import {
   DataError,
 } from "node-json-db";
 import { Option, none, some } from "fp-ts/lib/Option";
-import { EventEmitter } from "./event-emitter";
-import { InfrastructureEvent } from "../request-handlers/types";
+import { EventEmitter, InfrastructureEvent } from "./event-emitter";
 
 type FsDbClientOptions = { dbFile: string };
 type NullFsDbClientOptions<T> = { items?: Record<string, T>; error?: Error };
@@ -19,20 +18,17 @@ type JsonDbInterface = Pick<JsonDB, "getData" | "push" | "delete">;
 const JSON_PARSE_ERROR = 1;
 const DATA_PATH_NOT_FOUND = 5;
 
-export type ItemStoredEvent<T extends Item> = { id: Id; item: T };
-export type ItemDeletedEvent = { id: Id };
-
-interface ItemStoredEventNEW<TItem extends Item>
+interface ItemStoredEvent<TItem extends Item>
   extends InfrastructureEvent<"FsDbClient", "item-stored"> {
   payload: { id: Id; item: TItem };
 }
-interface ItemDeletedEventNEW
+interface ItemDeletedEvent
   extends InfrastructureEvent<"FsDbClient", "item-deleted"> {
   payload: { id: Id };
 }
 type FsDbClientEvent<TItem extends Item> =
-  | ItemStoredEventNEW<TItem>
-  | ItemDeletedEventNEW;
+  | ItemStoredEvent<TItem>
+  | ItemDeletedEvent;
 
 export function assertValidId(id: unknown): asserts id is Id {
   if (typeof id !== "string") {

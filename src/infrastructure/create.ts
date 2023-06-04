@@ -1,9 +1,13 @@
-import { Infrastructure } from "../request-handlers/types";
 import { JokeRepo } from "./joke-repo";
 import { Uuid } from "./uuid";
 
-export type InfrastructureOptions = {
+type InfrastructureOptions = {
   dbFile: string;
+};
+
+export type Infrastructure = {
+  uuid: Uuid;
+  jokeRepo: JokeRepo;
 };
 
 export const createInfrastructure = (

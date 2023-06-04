@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { EventEmitter } from "./event-emitter";
-import { InfrastructureEvent } from "../request-handlers/types";
+import { EventEmitter, InfrastructureEvent } from "./event-emitter";
 
 describe("EventEmitter", () => {
   interface MyEvent extends InfrastructureEvent<"Test", "my-event"> {

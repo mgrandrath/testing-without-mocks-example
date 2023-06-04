@@ -1,4 +1,7 @@
-import { IEventEmitter, InfrastructureEvent } from "../request-handlers/types";
+import {
+  EventEmitter,
+  InfrastructureEvent,
+} from "../infrastructure/event-emitter";
 
 type EventRecorder<Event> = {
   data: () => Event[];
@@ -7,7 +10,7 @@ type EventRecorder<Event> = {
 export const recordEvents = <
   TEvent extends InfrastructureEvent<string, string>
 >(
-  eventEmitter: IEventEmitter<TEvent>
+  eventEmitter: EventEmitter<TEvent>
 ): EventRecorder<TEvent> => {
   const events: TEvent[] = [];
 

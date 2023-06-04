@@ -1,11 +1,8 @@
 import { createServer as createNodeHttpServer } from "node:http";
 import express from "express";
-import {
-  Infrastructure,
-  Request,
-  RequestHandler,
-} from "./request-handlers/types";
+import { Request, RequestHandler } from "./request-handlers/types";
 import * as Jokes from "./request-handlers/jokes";
+import { Infrastructure } from "./infrastructure/create";
 
 export type Server = {
   port: number;

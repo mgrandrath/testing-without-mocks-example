@@ -1,5 +1,16 @@
 import NodeEventEmitter from "node:events";
-import { EventListener, InfrastructureEvent } from "../request-handlers/types";
+
+export interface InfrastructureEvent<
+  TPrefix extends string,
+  TName extends string
+> {
+  type: `${TPrefix}/${TName}`;
+  payload: unknown;
+}
+
+type EventListener<TEvent extends InfrastructureEvent<string, string>> = (
+  event: TEvent
+) => void;
 
 const EVENT_TYPE = Symbol("eventType");
 

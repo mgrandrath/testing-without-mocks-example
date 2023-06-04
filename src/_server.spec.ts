@@ -8,7 +8,7 @@ import {
 } from "./spec-helpers/factories";
 import { recordEvents } from "./spec-helpers/record-events";
 import { JokeRepo } from "./infrastructure/joke-repo";
-import { Infrastructure } from "./request-handlers/types";
+import { Infrastructure } from "./infrastructure/create";
 
 describe("server", () => {
   let server: Server;

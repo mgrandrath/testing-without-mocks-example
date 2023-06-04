@@ -1,8 +1,7 @@
 import { Option } from "fp-ts/lib/Option";
 import { Joke, JokeId } from "../domain/joke";
 import { FsDbClient } from "./fs-db-client";
-import { IJokeRepo, JokeRepoEvent } from "../request-handlers/types";
-import { EventEmitter } from "./event-emitter";
+import { EventEmitter, InfrastructureEvent } from "./event-emitter";
 
 type JokeRepoOptions = {
   dbFile: string;
@@ -13,7 +12,16 @@ type NullJokeRepoOptions = {
   error?: Error;
 };
 
-export class JokeRepo implements IJokeRepo {
+interface JokeAddedEvent extends InfrastructureEvent<"JokeRepo", "joke-added"> {
+  payload: Joke;
+}
+interface JokeRemovedEvent
+  extends InfrastructureEvent<"JokeRepo", "joke-removed"> {
+  payload: { jokeId: JokeId };
+}
+type JokeRepoEvent = JokeAddedEvent | JokeRemovedEvent;
+
+export class JokeRepo {
   static create(options: JokeRepoOptions) {
     const fsDbClient = FsDbClient.create<Joke>({ dbFile: options.dbFile });
     return new JokeRepo(fsDbClient);
