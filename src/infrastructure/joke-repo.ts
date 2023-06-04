@@ -1,12 +1,8 @@
 import { Option } from "fp-ts/lib/Option";
 import { Joke, JokeId } from "../domain/joke";
-import { FsDbClient } from "./fs_db_client";
-import {
-  IJokeRepo,
-  JokeAddedEvent,
-  JokeRemovedEvent,
-} from "../request-handlers/types";
-import { EventEmitter } from "../utils/event-emitter";
+import { FsDbClient } from "./fs-db-client";
+import { IJokeRepo, JokeRepoEvent } from "../request-handlers/types";
+import { EventEmitter } from "./event-emitter";
 
 type JokeRepoOptions = {
   dbFile: string;
@@ -33,10 +29,7 @@ export class JokeRepo implements IJokeRepo {
 
   #fsDbClient: FsDbClient<Joke>;
 
-  events = {
-    jokeAdded: new EventEmitter<JokeAddedEvent>(),
-    jokeRemoved: new EventEmitter<JokeRemovedEvent>(),
-  };
+  events = new EventEmitter<JokeRepoEvent>();
 
   constructor(fsDbClient: FsDbClient<Joke>) {
     this.#fsDbClient = fsDbClient;
@@ -52,13 +45,17 @@ export class JokeRepo implements IJokeRepo {
 
   async add(joke: Joke): Promise<void> {
     await this.#fsDbClient.putItem(joke.jokeId, joke);
-    const jokeAddedEvent: JokeAddedEvent = joke;
-    this.events.jokeAdded.emit(jokeAddedEvent);
+    this.events.emit({
+      type: "JokeRepo/joke-added",
+      payload: joke,
+    });
   }
 
   async remove(jokeId: JokeId): Promise<void> {
     await this.#fsDbClient.deleteItem(jokeId);
-    const jokeRemovedEvent: JokeRemovedEvent = { jokeId };
-    this.events.jokeRemoved.emit(jokeRemovedEvent);
+    this.events.emit({
+      type: "JokeRepo/joke-removed",
+      payload: { jokeId },
+    });
   }
 }

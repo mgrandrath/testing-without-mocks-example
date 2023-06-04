@@ -73,23 +73,24 @@ describe("Jokes request handlers", () => {
       const uuid = Uuid.createNull("joke-111");
       const expectedJoke = { ...jokeInput, jokeId: "joke-111" };
       const infrastructure = createNullInfrastructure({ uuid });
-      const jokeAddedEvents = recordEvents(
-        infrastructure.jokeRepo.events.jokeAdded
-      );
+      const jokeAddedEvents = recordEvents(infrastructure.jokeRepo.events);
       const request = createRequest({ data: jokeInput });
 
       const response = await Jokes.create(infrastructure, request);
 
-      expect(jokeAddedEvents.data()).toEqual([expectedJoke]);
+      expect(jokeAddedEvents.data()).toEqual([
+        {
+          type: "JokeRepo/joke-added",
+          payload: expectedJoke,
+        },
+      ]);
       expect(response).toEqual(created({ joke: expectedJoke }));
     });
 
     it("should respond with 'Bad request' when validation fails", async () => {
       const invalidJokeInput = createJokeInput({ question: undefined });
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents(
-        infrastructure.jokeRepo.events.jokeAdded
-      );
+      const jokeAddedEvents = recordEvents(infrastructure.jokeRepo.events);
       const request = createRequest({ data: invalidJokeInput });
 
       const response = await Jokes.create(infrastructure, request);
@@ -106,9 +107,7 @@ describe("Jokes request handlers", () => {
       const jokeInput = createJokeInput();
       const expectedJoke = { ...jokeInput, jokeId: "joke-111" };
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents(
-        infrastructure.jokeRepo.events.jokeAdded
-      );
+      const jokeAddedEvents = recordEvents(infrastructure.jokeRepo.events);
       const request = createRequest({
         params: { jokeId: "joke-111" },
         data: jokeInput,
@@ -116,16 +115,19 @@ describe("Jokes request handlers", () => {
 
       const response = await Jokes.update(infrastructure, request);
 
-      expect(jokeAddedEvents.data()).toEqual([expectedJoke]);
+      expect(jokeAddedEvents.data()).toEqual([
+        {
+          type: "JokeRepo/joke-added",
+          payload: expectedJoke,
+        },
+      ]);
       expect(response).toEqual(noContent());
     });
 
     it("should respond with 'Bad request' when validation fails", async () => {
       const invalidJokeInput = createJokeInput({ question: undefined });
       const infrastructure = createNullInfrastructure();
-      const jokeAddedEvents = recordEvents(
-        infrastructure.jokeRepo.events.jokeAdded
-      );
+      const jokeAddedEvents = recordEvents(infrastructure.jokeRepo.events);
       const request = createRequest({
         params: { jokeId: "joke-111" },
         data: invalidJokeInput,
@@ -144,14 +146,17 @@ describe("Jokes request handlers", () => {
     it("should remove the given joke", async () => {
       const jokeId = "joke-111";
       const infrastructure = createNullInfrastructure();
-      const jokeRemovedEvents = recordEvents(
-        infrastructure.jokeRepo.events.jokeRemoved
-      );
+      const jokeRemovedEvents = recordEvents(infrastructure.jokeRepo.events);
       const request = createRequest({ params: { jokeId } });
 
       const response = await Jokes.destroy(infrastructure, request);
 
-      expect(jokeRemovedEvents.data()).toEqual([{ jokeId }]);
+      expect(jokeRemovedEvents.data()).toEqual([
+        {
+          type: "JokeRepo/joke-removed",
+          payload: { jokeId },
+        },
+      ]);
       expect(response).toEqual(noContent());
     });
   });

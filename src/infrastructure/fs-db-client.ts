@@ -6,7 +6,8 @@ import {
   DataError,
 } from "node-json-db";
 import { Option, none, some } from "fp-ts/lib/Option";
-import { EventEmitter } from "../utils/event-emitter";
+import { EventEmitter } from "./event-emitter";
+import { InfrastructureEvent } from "../request-handlers/types";
 
 type FsDbClientOptions = { dbFile: string };
 type NullFsDbClientOptions<T> = { items?: Record<string, T>; error?: Error };
@@ -20,6 +21,18 @@ const DATA_PATH_NOT_FOUND = 5;
 
 export type ItemStoredEvent<T extends Item> = { id: Id; item: T };
 export type ItemDeletedEvent = { id: Id };
+
+interface ItemStoredEventNEW<TItem extends Item>
+  extends InfrastructureEvent<"FsDbClient", "item-stored"> {
+  payload: { id: Id; item: TItem };
+}
+interface ItemDeletedEventNEW
+  extends InfrastructureEvent<"FsDbClient", "item-deleted"> {
+  payload: { id: Id };
+}
+type FsDbClientEvent<TItem extends Item> =
+  | ItemStoredEventNEW<TItem>
+  | ItemDeletedEventNEW;
 
 export function assertValidId(id: unknown): asserts id is Id {
   if (typeof id !== "string") {
@@ -58,10 +71,7 @@ export class FsDbClient<TItem extends Item> {
   #dbFile: string;
   #jsonDb: JsonDbInterface;
 
-  events = {
-    itemDeleted: new EventEmitter<ItemDeletedEvent>(),
-    itemStored: new EventEmitter<ItemStoredEvent<TItem>>(),
-  };
+  events = new EventEmitter<FsDbClientEvent<TItem>>();
 
   constructor(jsonDb: JsonDbInterface, options: FsDbClientOptions) {
     this.#dbFile = options.dbFile;
@@ -97,8 +107,10 @@ export class FsDbClient<TItem extends Item> {
 
     try {
       await this.#jsonDb.push(this.#itemPath(id), item, /* overwrite */ true);
-      const itemStoredEvent: ItemStoredEvent<TItem> = { id, item };
-      this.events.itemStored.emit(itemStoredEvent);
+      this.events.emit({
+        type: "FsDbClient/item-stored",
+        payload: { id, item },
+      });
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();
@@ -115,8 +127,10 @@ export class FsDbClient<TItem extends Item> {
 
     try {
       await this.#jsonDb.delete(this.#itemPath(id));
-      const itemDeletedEvent: ItemDeletedEvent = { id };
-      this.events.itemDeleted.emit(itemDeletedEvent);
+      this.events.emit({
+        type: "FsDbClient/item-deleted",
+        payload: { id },
+      });
     } catch (error) {
       if (this.#isDbUninitialized(error)) {
         await this.#initializeDbFile();

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { isNone, some } from "fp-ts/lib/Option";
-import { FsDbClient, assertValidId } from "./fs_db_client";
+import { FsDbClient, assertValidId } from "./fs-db-client";
 import { recordEvents } from "../spec-helpers/record-events";
 import { TmpFile, createTmpDbFile } from "../spec-helpers/tmp-file";
 
@@ -64,6 +64,30 @@ describe("FsDbClient", () => {
           numberProp: 123,
         })
       );
+    });
+
+    it("should emit an event when an item has been written", async () => {
+      type Item = { data: string };
+      const fsDbClient = FsDbClient.create<Item>({
+        dbFile: tmpFile.path,
+      });
+      const itemStoredEvents = recordEvents(fsDbClient.events);
+
+      await fsDbClient.putItem("item-111", {
+        data: "some data",
+      });
+
+      expect(itemStoredEvents.data()).toEqual([
+        {
+          type: "FsDbClient/item-stored",
+          payload: {
+            id: "item-111",
+            item: {
+              data: "some data",
+            },
+          },
+        },
+      ]);
     });
 
     it("should replace an existing item", async () => {
@@ -138,6 +162,25 @@ describe("FsDbClient", () => {
       expect(retrievedItems).toEqual([
         {
           data: "I am item 2",
+        },
+      ]);
+    });
+
+    it("should emit an event when an item has been deleted", async () => {
+      type Item = { data: string };
+      const fsDbClient = FsDbClient.create<Item>({
+        dbFile: tmpFile.path,
+      });
+      const itemDeletedEvents = recordEvents(fsDbClient.events);
+
+      await fsDbClient.deleteItem("item-111");
+
+      expect(itemDeletedEvents.data()).toEqual([
+        {
+          type: "FsDbClient/item-deleted",
+          payload: {
+            id: "item-111",
+          },
         },
       ]);
     });
@@ -239,25 +282,6 @@ describe("FsDbClient", () => {
     });
 
     describe("putItem", () => {
-      it("should emit an event when an item has been stored", async () => {
-        type Item = { data: string };
-        const fsDbClient = FsDbClient.createNull<Item>();
-        const itemStoredEvents = recordEvents(fsDbClient.events.itemStored);
-
-        await fsDbClient.putItem("item-111", {
-          data: "some data",
-        });
-
-        expect(itemStoredEvents.data()).toEqual([
-          {
-            id: "item-111",
-            item: {
-              data: "some data",
-            },
-          },
-        ]);
-      });
-
       it("should throw a configurable error", async () => {
         const fsDbClient = FsDbClient.createNull({
           error: new Error("some error"),
@@ -270,16 +294,6 @@ describe("FsDbClient", () => {
     });
 
     describe("deleteItem", () => {
-      it("should emit an event when an item has been deleted", async () => {
-        type Item = { data: string };
-        const fsDbClient = FsDbClient.createNull<Item>();
-        const itemDeletedEvents = recordEvents(fsDbClient.events.itemDeleted);
-
-        await fsDbClient.deleteItem("item-111");
-
-        expect(itemDeletedEvents.data()).toEqual([{ id: "item-111" }]);
-      });
-
       it("should throw a configurable error", async () => {
         const fsDbClient = FsDbClient.createNull({
           error: new Error("some error"),

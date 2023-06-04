@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isNone, some } from "fp-ts/lib/Option";
 import { Joke, createJokeId } from "../domain/joke";
-import { FsDbClient } from "./fs_db_client";
+import { FsDbClient } from "./fs-db-client";
 import { JokeRepo } from "./joke-repo";
 import { createJoke } from "../spec-helpers/factories";
 import { recordEvents } from "../spec-helpers/record-events";
@@ -155,7 +155,7 @@ describe("JokeRepo", () => {
   describe("add", () => {
     it("should add jokes", async () => {
       const fsDbClient = FsDbClient.createNull<Joke>();
-      const itemStoredEvents = recordEvents(fsDbClient.events.itemStored);
+      const itemStoredEvents = recordEvents(fsDbClient.events);
       const jokeRepo = new JokeRepo(fsDbClient);
 
       const joke = createJoke({
@@ -167,7 +167,10 @@ describe("JokeRepo", () => {
       await jokeRepo.add(joke);
 
       expect(itemStoredEvents.data()).toEqual([
-        { id: joke.jokeId, item: joke },
+        {
+          type: "FsDbClient/item-stored",
+          payload: { id: joke.jokeId, item: joke },
+        },
       ]);
     });
 
@@ -175,7 +178,7 @@ describe("JokeRepo", () => {
       it("should emit a JOKE_ADDED event after adding a new joke", async () => {
         const fsDbClient = FsDbClient.createNull<Joke>();
         const jokeRepo = new JokeRepo(fsDbClient);
-        const jokeAddedEvents = recordEvents(jokeRepo.events.jokeAdded);
+        const jokeAddedEvents = recordEvents(jokeRepo.events);
 
         const joke = createJoke({
           jokeId: createJokeId("joke-111"),
@@ -187,9 +190,12 @@ describe("JokeRepo", () => {
 
         expect(jokeAddedEvents.data()).toEqual([
           {
-            jokeId: "joke-111",
-            question: "Was ist weiß und steht hinterm Baum?",
-            answer: "Eine schüchterne Milch",
+            type: "JokeRepo/joke-added",
+            payload: {
+              jokeId: "joke-111",
+              question: "Was ist weiß und steht hinterm Baum?",
+              answer: "Eine schüchterne Milch",
+            },
           },
         ]);
       });
@@ -207,25 +213,33 @@ describe("JokeRepo", () => {
   describe("remove", () => {
     it("should remove a joke by id", async () => {
       const fsDbClient = FsDbClient.createNull<Joke>();
-      const jokeRemovedEvents = recordEvents(fsDbClient.events.itemDeleted);
+      const jokeRemovedEvents = recordEvents(fsDbClient.events);
       const jokeRepo = new JokeRepo(fsDbClient);
 
       await jokeRepo.remove(createJokeId("joke-111"));
 
-      expect(jokeRemovedEvents.data()).toEqual([{ id: "joke-111" }]);
+      expect(jokeRemovedEvents.data()).toEqual([
+        {
+          type: "FsDbClient/item-deleted",
+          payload: { id: "joke-111" },
+        },
+      ]);
     });
 
     describe("null instance", () => {
       it("should emit a JOKE_REMOVED event after removing a joke", async () => {
         const fsDbClient = FsDbClient.createNull<Joke>();
         const jokeRepo = new JokeRepo(fsDbClient);
-        const jokeRemovedEvents = recordEvents(jokeRepo.events.jokeRemoved);
+        const jokeRemovedEvents = recordEvents(jokeRepo.events);
 
         await jokeRepo.remove(createJokeId("joke-111"));
 
         expect(jokeRemovedEvents.data()).toEqual([
           {
-            jokeId: "joke-111",
+            type: "JokeRepo/joke-removed",
+            payload: {
+              jokeId: "joke-111",
+            },
           },
         ]);
       });

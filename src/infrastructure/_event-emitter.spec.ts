@@ -1,17 +1,27 @@
 import { describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "./event-emitter";
+import { InfrastructureEvent } from "../request-handlers/types";
 
 describe("EventEmitter", () => {
+  interface MyEvent extends InfrastructureEvent<"Test", "my-event"> {
+    payload: { myProp: string };
+  }
+
+  const irrelevantEvent: MyEvent = {
+    type: "Test/my-event",
+    payload: { myProp: "irrelevant" },
+  };
+
   it("should call all listeners with the emitted event", () => {
-    type MyEvent = {
-      myProp: string;
-    };
     const listenerA = vi.fn();
     const listenerB = vi.fn();
     const eventEmitter = new EventEmitter<MyEvent>();
     eventEmitter.addListener(listenerA);
     eventEmitter.addListener(listenerB);
-    const myEvent = { myProp: "My Value" };
+    const myEvent: MyEvent = {
+      type: "Test/my-event",
+      payload: { myProp: "My Value" },
+    };
 
     eventEmitter.emit(myEvent);
 
@@ -21,12 +31,12 @@ describe("EventEmitter", () => {
 
   it("should call a listener multiple times when it has been added multiple times", () => {
     const listener = vi.fn();
-    const eventEmitter = new EventEmitter<string>();
+    const eventEmitter = new EventEmitter<MyEvent>();
     eventEmitter.addListener(listener);
     eventEmitter.addListener(listener);
     eventEmitter.addListener(listener);
 
-    eventEmitter.emit("test");
+    eventEmitter.emit(irrelevantEvent);
 
     expect(listener).toHaveBeenCalledTimes(3);
   });
@@ -34,38 +44,38 @@ describe("EventEmitter", () => {
   it("should remove a given listener", () => {
     const listenerA = vi.fn();
     const listenerB = vi.fn();
-    const eventEmitter = new EventEmitter<string>();
+    const eventEmitter = new EventEmitter<MyEvent>();
     eventEmitter.addListener(listenerA);
     eventEmitter.addListener(listenerB);
 
     eventEmitter.removeListener(listenerB);
 
-    eventEmitter.emit("test");
+    eventEmitter.emit(irrelevantEvent);
     expect(listenerA).toHaveBeenCalled();
     expect(listenerB).not.toHaveBeenCalled();
   });
 
   it("should return a `removeListener` function when a listener is added", () => {
     const listener = vi.fn();
-    const eventEmitter = new EventEmitter<string>();
+    const eventEmitter = new EventEmitter<MyEvent>();
     const removeListener = eventEmitter.addListener(listener);
 
     removeListener();
 
-    eventEmitter.emit("test");
+    eventEmitter.emit(irrelevantEvent);
     expect(listener).not.toHaveBeenCalled();
   });
 
   it("should only remove the first occurance of the given listener", () => {
     const listener = vi.fn();
-    const eventEmitter = new EventEmitter<string>();
+    const eventEmitter = new EventEmitter<MyEvent>();
     eventEmitter.addListener(listener);
     eventEmitter.addListener(listener);
     eventEmitter.addListener(listener);
 
     eventEmitter.removeListener(listener);
 
-    eventEmitter.emit("test");
+    eventEmitter.emit(irrelevantEvent);
     expect(listener).toHaveBeenCalledTimes(2);
   });
 });

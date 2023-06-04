@@ -98,9 +98,7 @@ describe("server", () => {
   it("should store jokes", async () => {
     const jokeInput = createJokeInput();
     const { port, infrastructure } = await createAndStartServer();
-    const jokeAddedEvents = recordEvents(
-      infrastructure.jokeRepo.events.jokeAdded
-    );
+    const jokeAddedEvents = recordEvents(infrastructure.jokeRepo.events);
 
     const response = await axios({
       method: "POST",
@@ -112,8 +110,11 @@ describe("server", () => {
     expect(response.status).toEqual(201);
     expect(jokeAddedEvents.data()).toEqual([
       {
-        ...jokeInput,
-        jokeId: expect.any(String),
+        type: "JokeRepo/joke-added",
+        payload: {
+          ...jokeInput,
+          jokeId: expect.any(String),
+        },
       },
     ]);
   });
@@ -141,9 +142,7 @@ describe("server", () => {
     const joke = createJoke();
     const jokeInput = createJokeInput();
     const { port, infrastructure } = await createAndStartServer();
-    const jokeAddedEvents = recordEvents(
-      infrastructure.jokeRepo.events.jokeAdded
-    );
+    const jokeAddedEvents = recordEvents(infrastructure.jokeRepo.events);
 
     const response = await axios({
       method: "PUT",
@@ -155,17 +154,18 @@ describe("server", () => {
     expect(response.status).toEqual(204);
     expect(jokeAddedEvents.data()).toEqual([
       {
-        ...jokeInput,
-        jokeId: joke.jokeId,
+        type: "JokeRepo/joke-added",
+        payload: {
+          ...jokeInput,
+          jokeId: joke.jokeId,
+        },
       },
     ]);
   });
 
   it("should delete jokes", async () => {
     const { port, infrastructure } = await createAndStartServer();
-    const jokeRemovedEvents = recordEvents(
-      infrastructure.jokeRepo.events.jokeRemoved
-    );
+    const jokeRemovedEvents = recordEvents(infrastructure.jokeRepo.events);
 
     const response = await axios({
       method: "DELETE",
@@ -176,7 +176,10 @@ describe("server", () => {
     expect(response.status).toEqual(204);
     expect(jokeRemovedEvents.data()).toEqual([
       {
-        jokeId: "joke-111",
+        type: "JokeRepo/joke-removed",
+        payload: {
+          jokeId: "joke-111",
+        },
       },
     ]);
   });
